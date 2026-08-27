@@ -1,0 +1,1270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title id="pageTitle">Option Chain</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="container">
+      <header class="header">
+        <div>
+          <h1 id="pageHeading">Option Chain</h1>
+
+          <div id="connectionStatus" class="status disconnected">
+            DISCONNECTED
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="index-filter">
+            <label for="indexFilter"> Index: </label>
+
+            <select id="indexFilter" onchange="changeIndex()">
+              <option value="NIFTY">NIFTY</option>
+
+              <option value="BANKNIFTY">BANKNIFTY</option>
+
+              <option value="GOLD">GOLD</option>
+
+              <option value="SILVER">SILVER</option>
+
+              <option value="CRUDEOIL">CRUDEOIL</option>
+            </select>
+          </div>
+          <a href="/paper-trading" class="oi-change-button">Paper Trading</a>
+
+          <a href="/oi-treemap" class="oi-change-button">OI Treemap</a>
+
+          <a href="/oi-change" class="oi-change-button"> OI Change </a>
+
+          <div class="download-dropdown">
+            <button type="button" class="download-button">Download OI</button>
+
+            <div class="download-menu">
+              <a href="/download-oi"> Download CSV </a>
+
+              <a href="/download-oi-pdf"> Download PDF </a>
+            </div>
+          </div>
+
+          <button
+            id="connectButton"
+            class="connect-button"
+            onclick="toggleConnection()"
+          >
+            Connect
+          </button>
+        </div>
+      </header>
+
+      <section class="dashboard">
+        <div class="card">
+          <div class="card-title" id="spotTitle">SPOT</div>
+
+          <div id="spot" class="card-value">--</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">ATM STRIKE</div>
+
+          <div id="atm" class="card-value">--</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">EXPIRY</div>
+
+          <select id="expiry" onchange="changeExpiry()"></select>
+        </div>
+
+        <div class="card">
+          <div class="card-title">LAST UPDATE</div>
+
+          <div id="lastUpdate" class="card-value small">--</div>
+        </div>
+      </section>
+
+      <section class="controls">
+        <button
+          id="refreshButton"
+          class="refresh-button"
+          onclick="manualRefresh()"
+          disabled
+        >
+          Refresh
+        </button>
+
+        <span id="refreshMessage"> Connect to Angel One </span>
+
+        <div class="snapshot-filter">
+          <label for="snapshotFilter"> Show: </label>
+
+          <select id="snapshotFilter" onchange="filterSnapshots()">
+            <option value="1">Latest 1</option>
+
+            <option value="5">Last 5</option>
+
+            <option value="10">Last 10</option>
+
+            <option value="all">All</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="oi-summary" id="oiSummary">
+        <div class="oi-summary-item ce-summary">
+          <strong>CE HIGHEST OI</strong>
+          <span id="ceHighest">--</span>
+        </div>
+
+        <div class="oi-summary-item ce-summary">
+          <strong>CE LOWEST OI</strong>
+          <span id="ceLowest">--</span>
+        </div>
+
+        <div class="oi-summary-item pe-summary">
+          <strong>PE HIGHEST OI</strong>
+          <span id="peHighest">--</span>
+        </div>
+
+        <div class="oi-summary-item pe-summary">
+          <strong>PE LOWEST OI</strong>
+          <span id="peLowest">--</span>
+        </div>
+
+        <div class="oi-summary-item ce-summary">
+          <strong>CE HIGHEST VOLUME</strong>
+          <span id="ceHighestVolume">--</span>
+        </div>
+
+        <div class="oi-summary-item ce-summary">
+          <strong>CE LOWEST VOLUME</strong>
+          <span id="ceLowestVolume">--</span>
+        </div>
+
+        <div class="oi-summary-item pe-summary">
+          <strong>PE HIGHEST VOLUME</strong>
+          <span id="peHighestVolume">--</span>
+        </div>
+
+        <div class="oi-summary-item pe-summary">
+          <strong>PE LOWEST VOLUME</strong>
+          <span id="peLowestVolume">--</span>
+        </div>
+
+        <div class="oi-summary-item ce-summary" id="oiDifferenceCard">
+          <strong>OI DIFFERENCE (CE - PE)</strong>
+          <span id="oiDifference">--</span>
+        </div>
+
+        <div class="oi-summary-item ce-summary" id="volumeDifferenceCard">
+          <strong>VOLUME DIFFERENCE (CE - PE)</strong>
+          <span id="volumeDifference">--</span>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           OI + VOLUME MARKET SIGNAL
+           ===================================================== -->
+
+      <section class="market-signal-section">
+        <h2 class="market-signal-title">OI + Volume Signal</h2>
+
+        <div class="market-signal-grid">
+          <div class="market-signal-card" id="ceSignalCard">
+            <strong>CE SIGNAL</strong>
+            <span id="ceSignal">--</span>
+          </div>
+
+          <div class="market-signal-card" id="peSignalCard">
+            <strong>PE SIGNAL</strong>
+            <span id="peSignal">--</span>
+          </div>
+
+          <div class="market-signal-card" id="marketSignalCard">
+            <strong>OVERALL MARKET SIGNAL</strong>
+            <span id="marketSignal">--</span>
+          </div>
+        </div>
+      </section>
+
+      <main id="snapshots"></main>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+    <script>
+      let currentIndex = "NIFTY";
+
+      function getNumber(value) {
+        if (value === null || value === undefined || value === "") {
+          return NaN;
+        }
+
+        return Number(String(value).replace(/,/g, "").trim());
+      }
+
+      function updatePageTitle(index) {
+        document.title = index + " Option Chain";
+
+        document.getElementById("pageHeading").textContent =
+          index + " Option Chain";
+
+        document.getElementById("spotTitle").textContent = index + " SPOT";
+      }
+
+      function updateConnectionStatus(connected) {
+        const status = document.getElementById("connectionStatus");
+
+        const button = document.getElementById("connectButton");
+
+        const refresh = document.getElementById("refreshButton");
+
+        if (connected) {
+          status.textContent = "CONNECTED";
+
+          status.className = "status connected";
+
+          button.textContent = "Disconnect";
+
+          refresh.disabled = false;
+        } else {
+          status.textContent = "DISCONNECTED";
+
+          status.className = "status disconnected";
+
+          button.textContent = "Connect";
+
+          refresh.disabled = true;
+        }
+      }
+
+      function populateIndexes(selectedIndex) {
+        const select = document.getElementById("indexFilter");
+
+        const indexes = ["NIFTY", "BANKNIFTY", "GOLD", "SILVER", "CRUDEOIL"];
+
+        select.innerHTML = "";
+
+        indexes.forEach(function (index) {
+          const option = document.createElement("option");
+
+          option.value = index;
+
+          option.textContent = index;
+
+          if (index === selectedIndex) {
+            option.selected = true;
+          }
+
+          select.appendChild(option);
+        });
+      }
+
+      async function loadStatus() {
+        try {
+          const response = await fetch("/status");
+
+          const data = await response.json();
+
+          if (data.index) {
+            currentIndex = data.index;
+
+            populateIndexes(currentIndex);
+
+            updatePageTitle(currentIndex);
+          }
+
+          updateConnectionStatus(data.connected);
+
+          if (data.expiries) {
+            populateExpiries(data.expiries, data.expiry);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function populateExpiries(expiries, selectedExpiry) {
+        const select = document.getElementById("expiry");
+
+        select.innerHTML = "";
+
+        if (!expiries || expiries.length === 0) {
+          const option = document.createElement("option");
+
+          option.textContent = "No expiry available";
+
+          option.value = "";
+
+          select.appendChild(option);
+
+          return;
+        }
+
+        expiries.forEach(function (expiry) {
+          const option = document.createElement("option");
+
+          option.value = expiry;
+
+          option.textContent = expiry;
+
+          if (expiry === selectedExpiry) {
+            option.selected = true;
+          }
+
+          select.appendChild(option);
+        });
+      }
+
+      async function changeIndex() {
+        const select = document.getElementById("indexFilter");
+
+        const index = select.value;
+
+        if (!index) {
+          return;
+        }
+
+        localStorage.setItem("selectedIndex", index);
+
+        document.body.classList.add("index-loading");
+
+        try {
+          const response = await fetch(
+            "/set-index?index=" + encodeURIComponent(index),
+          );
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            alert(data.message || "Unable to change index");
+
+            return;
+          }
+
+          currentIndex = data.index;
+
+          localStorage.setItem("selectedIndex", data.index);
+
+          updatePageTitle(data.index);
+
+          populateExpiries(data.expiries, data.expiry);
+
+          /*
+           * Reload only after backend
+           * has successfully changed the
+           * selected index.
+           */
+
+          window.location.reload();
+        } catch (error) {
+          console.error(error);
+
+          alert("Unable to change index");
+        } finally {
+          document.body.classList.remove("index-loading");
+        }
+      }
+
+      async function changeExpiry() {
+        const expiry = document.getElementById("expiry").value;
+
+        if (!expiry) {
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            "/set-expiry?expiry=" + encodeURIComponent(expiry),
+          );
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            alert(data.message || "Unable to change expiry");
+
+            return;
+          }
+
+          renderSnapshots([data.snapshot]);
+
+          updateDashboard(data.snapshot);
+
+          updateOISummary();
+
+          filterSnapshots();
+        } catch (error) {
+          console.error(error);
+
+          alert("Unable to change expiry");
+        }
+      }
+
+      function updateDashboard(snapshot) {
+        if (!snapshot) {
+          return;
+        }
+
+        document.getElementById("spot").textContent = Number(
+          snapshot.spot,
+        ).toFixed(2);
+
+        document.getElementById("atm").textContent = Number(
+          snapshot.atm,
+        ).toFixed(0);
+
+        document.getElementById("lastUpdate").textContent = snapshot.timestamp;
+
+        updatePageTitle(snapshot.index || currentIndex);
+      }
+
+      function renderSnapshots(snapshots) {
+        const container = document.getElementById("snapshots");
+
+        container.innerHTML = "";
+
+        if (!snapshots || snapshots.length === 0) {
+          return;
+        }
+
+        snapshots.forEach(function (snapshot, snapshotIndex) {
+          const section = document.createElement("section");
+
+          section.className = "snapshot";
+
+          section.setAttribute("data-snapshot-index", snapshotIndex);
+
+          const header = document.createElement("div");
+
+          header.className = "snapshot-header";
+
+          const left = document.createElement("div");
+
+          const timestamp = document.createElement("strong");
+
+          timestamp.textContent = snapshot.timestamp;
+
+          const expiry = document.createElement("span");
+
+          expiry.textContent = " Expiry: " + snapshot.expiry;
+
+          left.appendChild(timestamp);
+
+          left.appendChild(expiry);
+
+          const right = document.createElement("div");
+
+          right.innerHTML =
+            "Spot: <strong>" +
+            Number(snapshot.spot).toFixed(2) +
+            "</strong>" +
+            "&nbsp;&nbsp; ATM: <strong>" +
+            Number(snapshot.atm).toFixed(0) +
+            "</strong>";
+
+          header.appendChild(left);
+
+          header.appendChild(right);
+
+          const wrapper = document.createElement("div");
+
+          wrapper.className = "table-wrapper";
+
+          const table = document.createElement("table");
+
+          const thead = document.createElement("thead");
+
+          const headerRow1 = document.createElement("tr");
+
+          const ceHeader = document.createElement("th");
+
+          ceHeader.colSpan = 4;
+
+          ceHeader.className = "ce-header";
+
+          ceHeader.textContent = "CALL OPTION (CE)";
+
+          const strikeHeader = document.createElement("th");
+
+          strikeHeader.rowSpan = 2;
+
+          strikeHeader.className = "strike-header";
+
+          strikeHeader.textContent = "STRIKE";
+
+          const peHeader = document.createElement("th");
+
+          peHeader.colSpan = 4;
+
+          peHeader.className = "pe-header";
+
+          peHeader.textContent = "PUT OPTION (PE)";
+
+          headerRow1.appendChild(ceHeader);
+
+          headerRow1.appendChild(strikeHeader);
+
+          headerRow1.appendChild(peHeader);
+
+          const headerRow2 = document.createElement("tr");
+
+          [
+            "LTP",
+            "CHANGE",
+            "OI",
+            "VOLUME",
+            "LTP",
+            "CHANGE",
+            "OI",
+            "VOLUME",
+          ].forEach(function (text) {
+            const th = document.createElement("th");
+
+            th.textContent = text;
+
+            headerRow2.appendChild(th);
+          });
+
+          thead.appendChild(headerRow1);
+
+          thead.appendChild(headerRow2);
+
+          const tbody = document.createElement("tbody");
+
+          if (snapshot.rows) {
+            snapshot.rows.forEach(function (row) {
+              const tr = document.createElement("tr");
+
+              const values = [
+                row.ce_ltp,
+                row.ce_change,
+                row.ce_oi,
+                row.ce_volume,
+
+                row.strike,
+
+                row.pe_ltp,
+                row.pe_change,
+                row.pe_oi,
+                row.pe_volume,
+              ];
+
+              values.forEach(function (value, index) {
+                const td = document.createElement("td");
+
+                if (index === 4) {
+                  td.className = "strike";
+
+                  td.textContent = Number(value).toFixed(0);
+                } else {
+                  td.textContent =
+                    value === null || value === undefined || value === ""
+                      ? ""
+                      : value;
+                }
+
+                tr.appendChild(td);
+              });
+
+              tbody.appendChild(tr);
+            });
+          }
+
+          const combinedRow = document.createElement("tr");
+
+          combinedRow.className = "combined-row";
+
+          const totalLabel = document.createElement("td");
+
+          totalLabel.colSpan = 2;
+
+          totalLabel.textContent = "COMBINED TOTAL";
+
+          const ceOI = document.createElement("td");
+
+          ceOI.textContent = calculateTotal(snapshot.rows, "ce_oi");
+
+          const ceVolume = document.createElement("td");
+
+          ceVolume.textContent = calculateTotal(snapshot.rows, "ce_volume");
+
+          const strike = document.createElement("td");
+
+          strike.className = "strike";
+
+          const empty = document.createElement("td");
+
+          empty.colSpan = 2;
+
+          const peOI = document.createElement("td");
+
+          peOI.textContent = calculateTotal(snapshot.rows, "pe_oi");
+
+          const peVolume = document.createElement("td");
+
+          peVolume.textContent = calculateTotal(snapshot.rows, "pe_volume");
+
+          combinedRow.appendChild(totalLabel);
+
+          combinedRow.appendChild(ceOI);
+
+          combinedRow.appendChild(ceVolume);
+
+          combinedRow.appendChild(strike);
+
+          combinedRow.appendChild(empty);
+
+          combinedRow.appendChild(peOI);
+
+          combinedRow.appendChild(peVolume);
+
+          tbody.appendChild(combinedRow);
+
+          table.appendChild(thead);
+
+          table.appendChild(tbody);
+
+          wrapper.appendChild(table);
+
+          section.appendChild(header);
+
+          section.appendChild(wrapper);
+
+          container.appendChild(section);
+        });
+      }
+
+      function calculateTotal(rows, field) {
+        if (!rows || rows.length === 0) {
+          return "0";
+        }
+
+        let total = 0;
+
+        rows.forEach(function (row) {
+          const value = getNumber(row[field]);
+
+          if (!Number.isNaN(value)) {
+            total += value;
+          }
+        });
+
+        return total.toLocaleString("en-IN", {
+          maximumFractionDigits: 0,
+        });
+      }
+
+      function updateOISummary() {
+        const snapshots = document.querySelectorAll(".snapshot");
+
+        if (snapshots.length === 0) {
+          return;
+        }
+
+        const rows = snapshots[0].querySelectorAll(
+          "tbody tr:not(.combined-row)",
+        );
+
+        let highestCE = null;
+        let lowestCE = null;
+
+        let highestPE = null;
+        let lowestPE = null;
+
+        let highestCEVolume = null;
+        let lowestCEVolume = null;
+
+        let highestPEVolume = null;
+        let lowestPEVolume = null;
+
+        rows.forEach(function (row) {
+          const cells = row.querySelectorAll("td");
+
+          if (cells.length < 9) {
+            return;
+          }
+
+          const strike = getNumber(cells[4].textContent);
+
+          const ceOI = getNumber(cells[2].textContent);
+
+          const ceVolume = getNumber(cells[3].textContent);
+
+          const peOI = getNumber(cells[7].textContent);
+
+          const peVolume = getNumber(cells[8].textContent);
+
+          if (!Number.isNaN(strike) && !Number.isNaN(ceOI)) {
+            if (highestCE === null || ceOI > highestCE.oi) {
+              highestCE = {
+                strike: strike,
+                oi: ceOI,
+              };
+            }
+
+            if (lowestCE === null || ceOI < lowestCE.oi) {
+              lowestCE = {
+                strike: strike,
+                oi: ceOI,
+              };
+            }
+          }
+
+          if (!Number.isNaN(strike) && !Number.isNaN(peOI)) {
+            if (highestPE === null || peOI > highestPE.oi) {
+              highestPE = {
+                strike: strike,
+                oi: peOI,
+              };
+            }
+
+            if (lowestPE === null || peOI < lowestPE.oi) {
+              lowestPE = {
+                strike: strike,
+                oi: peOI,
+              };
+            }
+          }
+
+          if (!Number.isNaN(strike) && !Number.isNaN(ceVolume)) {
+            if (highestCEVolume === null || ceVolume > highestCEVolume.volume) {
+              highestCEVolume = {
+                strike: strike,
+                volume: ceVolume,
+              };
+            }
+
+            if (lowestCEVolume === null || ceVolume < lowestCEVolume.volume) {
+              lowestCEVolume = {
+                strike: strike,
+                volume: ceVolume,
+              };
+            }
+          }
+
+          if (!Number.isNaN(strike) && !Number.isNaN(peVolume)) {
+            if (highestPEVolume === null || peVolume > highestPEVolume.volume) {
+              highestPEVolume = {
+                strike: strike,
+                volume: peVolume,
+              };
+            }
+
+            if (lowestPEVolume === null || peVolume < lowestPEVolume.volume) {
+              lowestPEVolume = {
+                strike: strike,
+                volume: peVolume,
+              };
+            }
+          }
+        });
+
+        setSummary("ceHighest", highestCE);
+
+        setSummary("ceLowest", lowestCE);
+
+        setSummary("peHighest", highestPE);
+
+        setSummary("peLowest", lowestPE);
+
+        setVolumeSummary("ceHighestVolume", highestCEVolume);
+
+        setVolumeSummary("ceLowestVolume", lowestCEVolume);
+
+        setVolumeSummary("peHighestVolume", highestPEVolume);
+
+        setVolumeSummary("peLowestVolume", lowestPEVolume);
+
+        updateDifferenceSummary();
+
+        updateMarketSignal();
+      }
+
+      function updateDifferenceSummary() {
+        const snapshots = document.querySelectorAll(".snapshot");
+
+        if (snapshots.length === 0) {
+          return;
+        }
+
+        const rows = snapshots[0].querySelectorAll(
+          "tbody tr:not(.combined-row)",
+        );
+
+        let ceOI = 0;
+        let peOI = 0;
+
+        let ceVolume = 0;
+        let peVolume = 0;
+
+        rows.forEach(function (row) {
+          const cells = row.querySelectorAll("td");
+
+          if (cells.length < 9) {
+            return;
+          }
+
+          const ceOIValue = getNumber(cells[2].textContent);
+          const ceVolumeValue = getNumber(cells[3].textContent);
+
+          const peOIValue = getNumber(cells[7].textContent);
+          const peVolumeValue = getNumber(cells[8].textContent);
+
+          if (!Number.isNaN(ceOIValue)) {
+            ceOI += ceOIValue;
+          }
+
+          if (!Number.isNaN(peOIValue)) {
+            peOI += peOIValue;
+          }
+
+          if (!Number.isNaN(ceVolumeValue)) {
+            ceVolume += ceVolumeValue;
+          }
+
+          if (!Number.isNaN(peVolumeValue)) {
+            peVolume += peVolumeValue;
+          }
+        });
+
+        const oiDifference = Math.abs(ceOI) - Math.abs(peOI);
+
+        const volumeDifference = Math.abs(ceVolume) - Math.abs(peVolume);
+
+        const oiDifferenceElement = document.getElementById("oiDifference");
+
+        const volumeDifferenceElement =
+          document.getElementById("volumeDifference");
+
+        if (oiDifferenceElement) {
+          oiDifferenceElement.textContent =
+            oiDifference.toLocaleString("en-IN");
+        }
+
+        if (volumeDifferenceElement) {
+          volumeDifferenceElement.textContent =
+            volumeDifference.toLocaleString("en-IN");
+        }
+
+        updateDifferenceCardColor(
+          document.getElementById("oiDifferenceCard"),
+          oiDifference,
+        );
+
+        updateDifferenceCardColor(
+          document.getElementById("volumeDifferenceCard"),
+          volumeDifference,
+        );
+      }
+
+      function updateDifferenceCardColor(card, value) {
+        if (!card) {
+          return;
+        }
+
+        card.classList.remove(
+          "difference-positive",
+          "difference-negative",
+          "difference-neutral",
+        );
+
+        if (value > 0) {
+          card.classList.add("difference-positive");
+        } else if (value < 0) {
+          card.classList.add("difference-negative");
+        } else {
+          card.classList.add("difference-neutral");
+        }
+      }
+
+      /* =====================================================
+         OI + VOLUME SIGNAL LOGIC
+
+         CE:
+         OI ↓ + Volume ↑ = BULLISH
+         OI ↑ + Volume ↑ = BEARISH
+         OI ↓ + Volume ↓ = WEAK BULLISH
+         OI ↑ + Volume ↓ = WEAK BEARISH
+
+         PE:
+         OI ↓ + Volume ↑ = BEARISH
+         OI ↑ + Volume ↑ = BULLISH
+         OI ↓ + Volume ↓ = WEAK BEARISH
+         OI ↑ + Volume ↓ = WEAK BULLISH
+         ===================================================== */
+
+      function updateMarketSignal() {
+        const snapshots = document.querySelectorAll(".snapshot");
+
+        if (snapshots.length === 0) {
+          return;
+        }
+
+        const rows = snapshots[0].querySelectorAll(
+          "tbody tr:not(.combined-row)",
+        );
+
+        let ceOI = 0;
+        let peOI = 0;
+
+        let ceVolume = 0;
+        let peVolume = 0;
+
+        rows.forEach(function (row) {
+          const cells = row.querySelectorAll("td");
+
+          if (cells.length < 9) {
+            return;
+          }
+
+          const ceOIValue = getNumber(cells[2].textContent);
+          const ceVolumeValue = getNumber(cells[3].textContent);
+
+          const peOIValue = getNumber(cells[7].textContent);
+          const peVolumeValue = getNumber(cells[8].textContent);
+
+          if (!Number.isNaN(ceOIValue)) {
+            ceOI += ceOIValue;
+          }
+
+          if (!Number.isNaN(ceVolumeValue)) {
+            ceVolume += ceVolumeValue;
+          }
+
+          if (!Number.isNaN(peOIValue)) {
+            peOI += peOIValue;
+          }
+
+          if (!Number.isNaN(peVolumeValue)) {
+            peVolume += peVolumeValue;
+          }
+        });
+
+        let ceSignal = "NEUTRAL";
+        let ceScore = 0;
+
+        if (ceOI < 0 && ceVolume > 0) {
+          ceSignal = "BULLISH";
+          ceScore = Math.abs(ceOI) * ceVolume;
+        } else if (ceOI > 0 && ceVolume > 0) {
+          ceSignal = "BEARISH";
+          ceScore = Math.abs(ceOI) * ceVolume;
+        } else if (ceOI < 0 && ceVolume < 0) {
+          ceSignal = "WEAK BULLISH";
+          ceScore = Math.abs(ceOI);
+        } else if (ceOI > 0 && ceVolume < 0) {
+          ceSignal = "WEAK BEARISH";
+          ceScore = Math.abs(ceOI);
+        }
+
+        let peSignal = "NEUTRAL";
+        let peScore = 0;
+
+        if (peOI < 0 && peVolume > 0) {
+          peSignal = "BEARISH";
+          peScore = Math.abs(peOI) * peVolume;
+        } else if (peOI > 0 && peVolume > 0) {
+          peSignal = "BULLISH";
+          peScore = Math.abs(peOI) * peVolume;
+        } else if (peOI < 0 && peVolume < 0) {
+          peSignal = "WEAK BEARISH";
+          peScore = Math.abs(peOI);
+        } else if (peOI > 0 && peVolume < 0) {
+          peSignal = "WEAK BULLISH";
+          peScore = Math.abs(peOI);
+        }
+
+        const ceSignalElement = document.getElementById("ceSignal");
+
+        const peSignalElement = document.getElementById("peSignal");
+
+        const marketSignalElement = document.getElementById("marketSignal");
+
+        const ceSignalCard = document.getElementById("ceSignalCard");
+
+        const peSignalCard = document.getElementById("peSignalCard");
+
+        const marketSignalCard = document.getElementById("marketSignalCard");
+
+        if (
+          !ceSignalElement ||
+          !peSignalElement ||
+          !marketSignalElement ||
+          !ceSignalCard ||
+          !peSignalCard ||
+          !marketSignalCard
+        ) {
+          return;
+        }
+
+        ceSignalElement.textContent =
+          ceSignal +
+          " | OI " +
+          (ceOI >= 0 ? "↑" : "↓") +
+          " | VOL " +
+          (ceVolume >= 0 ? "↑" : "↓");
+
+        peSignalElement.textContent =
+          peSignal +
+          " | OI " +
+          (peOI >= 0 ? "↑" : "↓") +
+          " | VOL " +
+          (peVolume >= 0 ? "↑" : "↓");
+
+        ceSignalCard.classList.remove(
+          "signal-bullish",
+          "signal-bearish",
+          "signal-neutral",
+          "signal-mixed",
+        );
+
+        peSignalCard.classList.remove(
+          "signal-bullish",
+          "signal-bearish",
+          "signal-neutral",
+          "signal-mixed",
+        );
+
+        marketSignalCard.classList.remove(
+          "signal-bullish",
+          "signal-bearish",
+          "signal-neutral",
+          "signal-mixed",
+        );
+
+        if (ceSignal.includes("BULLISH")) {
+          ceSignalCard.classList.add("signal-bullish");
+        } else if (ceSignal.includes("BEARISH")) {
+          ceSignalCard.classList.add("signal-bearish");
+        } else {
+          ceSignalCard.classList.add("signal-neutral");
+        }
+
+        if (peSignal.includes("BULLISH")) {
+          peSignalCard.classList.add("signal-bullish");
+        } else if (peSignal.includes("BEARISH")) {
+          peSignalCard.classList.add("signal-bearish");
+        } else {
+          peSignalCard.classList.add("signal-neutral");
+        }
+
+        let overallSignal = "NEUTRAL";
+
+        if (ceScore > 0 && peScore > 0) {
+          if (ceSignal.includes("BULLISH") && peSignal.includes("BEARISH")) {
+            overallSignal =
+              ceScore > peScore
+                ? "BULLISH"
+                : ceScore < peScore
+                  ? "BEARISH"
+                  : "MIXED";
+          } else if (
+            ceSignal.includes("BEARISH") &&
+            peSignal.includes("BULLISH")
+          ) {
+            overallSignal =
+              ceScore > peScore
+                ? "BEARISH"
+                : ceScore < peScore
+                  ? "BULLISH"
+                  : "MIXED";
+          } else if (
+            ceSignal.includes("BULLISH") &&
+            peSignal.includes("BULLISH")
+          ) {
+            overallSignal = "BULLISH";
+          } else if (
+            ceSignal.includes("BEARISH") &&
+            peSignal.includes("BEARISH")
+          ) {
+            overallSignal = "BEARISH";
+          }
+        } else if (ceSignal.includes("BULLISH")) {
+          overallSignal = "BULLISH";
+        } else if (ceSignal.includes("BEARISH")) {
+          overallSignal = "BEARISH";
+        } else if (peSignal.includes("BULLISH")) {
+          overallSignal = "BULLISH";
+        } else if (peSignal.includes("BEARISH")) {
+          overallSignal = "BEARISH";
+        }
+
+        marketSignalElement.textContent = overallSignal;
+
+        if (overallSignal === "BULLISH") {
+          marketSignalCard.classList.add("signal-bullish");
+        } else if (overallSignal === "BEARISH") {
+          marketSignalCard.classList.add("signal-bearish");
+        } else if (overallSignal === "MIXED") {
+          marketSignalCard.classList.add("signal-mixed");
+        } else {
+          marketSignalCard.classList.add("signal-neutral");
+        }
+      }
+
+      function setSummary(elementId, value) {
+        if (!value) {
+          return;
+        }
+
+        document.getElementById(elementId).textContent =
+          value.oi.toLocaleString("en-IN") +
+          " @ " +
+          value.strike.toLocaleString("en-IN");
+      }
+
+      function setVolumeSummary(elementId, value) {
+        if (!value) {
+          return;
+        }
+
+        document.getElementById(elementId).textContent =
+          value.volume.toLocaleString("en-IN") +
+          " @ " +
+          value.strike.toLocaleString("en-IN");
+      }
+
+      function filterSnapshots() {
+        const selected = document.getElementById("snapshotFilter").value;
+
+        const snapshots = document.querySelectorAll("#snapshots .snapshot");
+
+        let numberToShow;
+
+        if (selected === "all") {
+          numberToShow = snapshots.length;
+        } else {
+          numberToShow = parseInt(selected);
+        }
+
+        snapshots.forEach(function (snapshot, index) {
+          snapshot.style.display = index < numberToShow ? "" : "none";
+        });
+      }
+
+      async function loadSnapshots() {
+        try {
+          const response = await fetch("/api/snapshots");
+
+          const data = await response.json();
+
+          renderSnapshots(data);
+
+          if (data && data.length > 0) {
+            updateDashboard(data[0]);
+          }
+
+          updateOISummary();
+
+          updateMarketSignal();
+
+          filterSnapshots();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      async function manualRefresh() {
+        const button = document.getElementById("refreshButton");
+
+        const message = document.getElementById("refreshMessage");
+
+        button.disabled = true;
+
+        message.textContent = "Refreshing...";
+
+        try {
+          const response = await fetch("/refresh");
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            message.textContent = data.message || "Refresh failed";
+
+            return;
+          }
+
+          await loadSnapshots();
+
+          message.textContent = "Updated successfully";
+        } catch (error) {
+          console.error(error);
+
+          message.textContent = "Refresh failed";
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      async function initializePage() {
+        populateIndexes("NIFTY");
+
+        const savedIndex = localStorage.getItem("selectedIndex");
+
+        if (
+          savedIndex &&
+          ["NIFTY", "BANKNIFTY", "GOLD", "SILVER", "CRUDEOIL"].includes(
+            savedIndex,
+          )
+        ) {
+          currentIndex = savedIndex;
+        }
+
+        try {
+          const response = await fetch("/status");
+
+          const data = await response.json();
+
+          if (data.index) {
+            currentIndex = data.index;
+          }
+
+          populateIndexes(currentIndex);
+
+          updatePageTitle(currentIndex);
+
+          updateConnectionStatus(data.connected);
+
+          if (data.expiries) {
+            populateExpiries(data.expiries, data.expiry);
+          }
+
+          /*
+           * If the browser selection differs
+           * from the backend selection, change
+           * the backend selection once.
+           */
+
+          if (savedIndex && savedIndex !== currentIndex && data.connected) {
+            const select = document.getElementById("indexFilter");
+
+            select.value = savedIndex;
+
+            await changeIndex();
+
+            return;
+          }
+
+          localStorage.setItem("selectedIndex", currentIndex);
+
+          await loadSnapshots();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        initializePage();
+      });
+    </script>
+  </body>
+</html>

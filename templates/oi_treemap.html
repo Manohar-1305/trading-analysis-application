@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="refresh" content="180" />
+
+    <title>OI Change Treemap</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='oi_treemap.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>OI Change Treemap</h1>
+
+        <div class="navigation">
+          <a href="/"> OI Data </a>
+
+          <a href="/oi-change"> OI Change </a>
+          <a href="/paper-trading" class="oi-change-button">Paper Trading</a>
+          <a href="/" class="paper-button home-button"> Option Chain </a>
+
+          <button
+            type="button"
+            class="refresh-button"
+            onclick="window.location.reload()"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-container">
+        <label for="snapshotFilter"> Show: </label>
+
+        <select id="snapshotFilter" onchange="filterSnapshots()">
+          <option value="1">Latest 1</option>
+
+          <option value="5" selected>Last 5</option>
+
+          <option value="10">Last 10</option>
+
+          <option value="all">All</option>
+        </select>
+      </div>
+
+      {% if snapshots %} {% for snapshot in snapshots %}
+
+      <div class="snapshot" data-snapshot-index="{{ loop.index0 }}">
+        <div class="snapshot-header">
+          <span> {{ snapshot.timestamp }} </span>
+
+          <span>
+            Spot: {% if snapshot.spot is not none %} {{
+            "%.2f"|format(snapshot.spot) }} {% else %} -- {% endif %}
+          </span>
+
+          <span>
+            ATM: {% if snapshot.atm is not none %} {{
+            "%.0f"|format(snapshot.atm) }} {% else %} -- {% endif %}
+          </span>
+
+          <span> Expiry: {{ snapshot.expiry or "--" }} </span>
+        </div>
+
+        <div class="oi-sections">
+          <!-- ==================================================
+                 CE
+                 ================================================== -->
+
+          <div class="oi-section">
+            <div class="oi-section-title ce-title">CE OI CHANGE</div>
+
+            {% if snapshot.ce_boxes %}
+
+            <div class="treemap" data-type="CE">
+              {% for box in snapshot.ce_boxes %}
+
+              <div
+                class="treemap-box {% if box.value > 0 %}positive{% else %}negative{% endif %}"
+                data-value="{{ box.absolute }}"
+                data-raw-value="{{ box.value }}"
+                data-strike="{{ box.strike }}"
+              >
+                <div class="treemap-content">
+                  <div class="treemap-value">
+                    {{ "{:,.0f}".format(box.value) }}
+                  </div>
+
+                  <div class="treemap-strike">
+                    {{ "{:,.0f}".format(box.strike) }}
+                  </div>
+
+                  <div class="treemap-type">CE</div>
+
+                  <div class="treemap-percent"></div>
+                </div>
+              </div>
+
+              {% endfor %}
+            </div>
+
+            {% else %}
+
+            <div class="empty">No CE OI change for this snapshot.</div>
+
+            {% endif %}
+          </div>
+
+          <!-- ==================================================
+                 PE
+                 ================================================== -->
+
+          <div class="oi-section">
+            <div class="oi-section-title pe-title">PE OI CHANGE</div>
+
+            {% if snapshot.pe_boxes %}
+
+            <div class="treemap" data-type="PE">
+              {% for box in snapshot.pe_boxes %}
+
+              <div
+                class="treemap-box {% if box.value > 0 %}positive{% else %}negative{% endif %}"
+                data-value="{{ box.absolute }}"
+                data-raw-value="{{ box.value }}"
+                data-strike="{{ box.strike }}"
+              >
+                <div class="treemap-content">
+                  <div class="treemap-value">
+                    {{ "{:,.0f}".format(box.value) }}
+                  </div>
+
+                  <div class="treemap-strike">
+                    {{ "{:,.0f}".format(box.strike) }}
+                  </div>
+
+                  <div class="treemap-type">PE</div>
+
+                  <div class="treemap-percent"></div>
+                </div>
+              </div>
+
+              {% endfor %}
+            </div>
+
+            {% else %}
+
+            <div class="empty">No PE OI change for this snapshot.</div>
+
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% endfor %} {% else %}
+
+      <div class="snapshot">
+        <div class="empty">Waiting for OI Change data.</div>
+      </div>
+
+      {% endif %}
+    </div>
+
+    <script>
+      /*
+       * ==========================================================
+       * SNAPSHOT FILTER
+       * ==========================================================
+       */
+
+      function filterSnapshots() {
+        const selected = document.getElementById("snapshotFilter").value;
+
+        const snapshots = document.querySelectorAll(
+          ".snapshot[data-snapshot-index]",
+        );
+
+        let numberToShow;
+
+        if (selected === "all") {
+          numberToShow = snapshots.length;
+        } else {
+          numberToShow = parseInt(selected, 10);
+        }
+
+        snapshots.forEach(function (snapshot, index) {
+          snapshot.style.display = index < numberToShow ? "" : "none";
+        });
+
+        requestAnimationFrame(function () {
+          buildTreemaps();
+        });
+      }
+
+      /*
+       * ==========================================================
+       * COLOUR SCALE
+       * ==========================================================
+       */
+
+      function applyColors(boxes) {
+        if (!boxes.length) {
+          return;
+        }
+
+        let maximum = 0;
+
+        boxes.forEach(function (box) {
+          const value = Number(box.dataset.value) || 0;
+
+          if (value > maximum) {
+            maximum = value;
+          }
+        });
+
+        if (maximum <= 0) {
+          return;
+        }
+
+        boxes.forEach(function (box) {
+          const value = Number(box.dataset.value) || 0;
+
+          const ratio = value / maximum;
+
+          let intensity;
+
+          if (ratio >= 0.8) {
+            intensity = 1;
+          } else if (ratio >= 0.6) {
+            intensity = 2;
+          } else if (ratio >= 0.4) {
+            intensity = 3;
+          } else if (ratio >= 0.2) {
+            intensity = 4;
+          } else {
+            intensity = 5;
+          }
+
+          box.classList.remove(
+            "intensity-1",
+            "intensity-2",
+            "intensity-3",
+            "intensity-4",
+            "intensity-5",
+          );
+
+          box.classList.add("intensity-" + intensity);
+        });
+      }
+
+      /*
+       * ==========================================================
+       * BUILD TREEMAP
+       *
+       * LARGEST -> SMALLEST
+       *
+       * The important difference here:
+       *
+       * The treemap height is dynamically increased according
+       * to the number of boxes.
+       *
+       * Therefore small OI changes are NOT crushed into tiny
+       * unreadable strips.
+       *
+       * Boxes remain tightly packed.
+       * ==========================================================
+       */
+
+      function buildTreemaps() {
+        const treemaps = document.querySelectorAll(".treemap");
+
+        treemaps.forEach(function (treemap) {
+          let boxes = Array.from(treemap.querySelectorAll(".treemap-box"));
+
+          if (!boxes.length) {
+            return;
+          }
+
+          /*
+           * --------------------------------------------------
+           * SORT LARGEST TO SMALLEST
+           * --------------------------------------------------
+           */
+
+          boxes.sort(function (a, b) {
+            return Number(b.dataset.value) - Number(a.dataset.value);
+          });
+
+          boxes.forEach(function (box) {
+            treemap.appendChild(box);
+          });
+
+          /*
+           * --------------------------------------------------
+           * TOTAL
+           * --------------------------------------------------
+           */
+
+          let total = 0;
+
+          boxes.forEach(function (box) {
+            total += Number(box.dataset.value) || 0;
+          });
+
+          if (total <= 0) {
+            return;
+          }
+
+          /*
+           * --------------------------------------------------
+           * COLOURS
+           * --------------------------------------------------
+           */
+
+          applyColors(boxes);
+
+          /*
+           * --------------------------------------------------
+           * NUMBER OF BOXES PER ROW
+           *
+           * Keep the rows short enough so every box remains
+           * readable.
+           * --------------------------------------------------
+           */
+
+          let boxesPerRow;
+
+          if (boxes.length <= 2) {
+            boxesPerRow = 2;
+          } else if (boxes.length <= 4) {
+            boxesPerRow = 2;
+          } else if (boxes.length <= 8) {
+            boxesPerRow = 3;
+          } else if (boxes.length <= 12) {
+            boxesPerRow = 4;
+          } else {
+            boxesPerRow = 5;
+          }
+
+          /*
+           * --------------------------------------------------
+           * BUILD ROWS
+           * --------------------------------------------------
+           */
+
+          const rows = [];
+
+          for (let i = 0; i < boxes.length; i += boxesPerRow) {
+            rows.push(boxes.slice(i, i + boxesPerRow));
+          }
+
+          /*
+           * --------------------------------------------------
+           * DYNAMIC HEIGHT
+           *
+           * Every row receives enough physical space for:
+           *
+           * OI
+           * Strike
+           * CE/PE
+           * Percentage
+           * --------------------------------------------------
+           */
+
+          const rowHeight = 100;
+
+          const totalHeight = rows.length * rowHeight;
+
+          treemap.style.height = totalHeight + "px";
+
+          /*
+           * --------------------------------------------------
+           * DIMENSIONS
+           * --------------------------------------------------
+           */
+
+          const width = treemap.clientWidth;
+
+          const height = totalHeight;
+
+          if (width <= 0 || height <= 0) {
+            return;
+          }
+
+          /*
+           * --------------------------------------------------
+           * ROW TOTALS
+           * --------------------------------------------------
+           */
+
+          const rowTotals = rows.map(function (row) {
+            return row.reduce(function (sum, box) {
+              return sum + (Number(box.dataset.value) || 0);
+            }, 0);
+          });
+
+          /*
+           * --------------------------------------------------
+           * LAYOUT
+           *
+           * Every row is tightly packed.
+           *
+           * Within each row:
+           *
+           * Largest OI = largest width.
+           * Smallest OI = smallest width.
+           * --------------------------------------------------
+           */
+
+          let currentTop = 0;
+
+          rows.forEach(function (row, rowIndex) {
+            const rowTotal = rowTotals[rowIndex];
+
+            let currentLeft = 0;
+
+            row.forEach(function (box, boxIndex) {
+              const value = Number(box.dataset.value) || 0;
+
+              /*
+               * Width is proportional to OI
+               * within this row.
+               */
+
+              let boxWidth = (value / rowTotal) * width;
+
+              /*
+               * Last box takes the exact remaining
+               * space to eliminate gaps.
+               */
+
+              if (boxIndex === row.length - 1) {
+                boxWidth = width - currentLeft;
+              }
+
+              boxWidth = Math.max(boxWidth, 1);
+
+              box.style.left = currentLeft + "px";
+
+              box.style.top = currentTop + "px";
+
+              box.style.width = boxWidth + "px";
+
+              box.style.height = rowHeight + "px";
+
+              /*
+               * Percentage of total CE/PE change.
+               */
+
+              const percentage = (value / total) * 100;
+
+              const percentElement = box.querySelector(".treemap-percent");
+
+              if (percentElement) {
+                percentElement.textContent = percentage.toFixed(1) + "%";
+              }
+
+              currentLeft += boxWidth;
+            });
+
+            currentTop += rowHeight;
+          });
+
+          /*
+           * --------------------------------------------------
+           * TEXT SIZE
+           * --------------------------------------------------
+           */
+
+          boxes.forEach(function (box) {
+            const boxWidth = parseFloat(box.style.width) || 0;
+
+            const boxHeight = parseFloat(box.style.height) || 0;
+
+            const valueElement = box.querySelector(".treemap-value");
+
+            const strikeElement = box.querySelector(".treemap-strike");
+
+            const typeElement = box.querySelector(".treemap-type");
+
+            const percentElement = box.querySelector(".treemap-percent");
+
+            /*
+             * LARGE
+             */
+
+            if (boxWidth >= 180) {
+              valueElement.style.fontSize = "18px";
+
+              strikeElement.style.fontSize = "14px";
+
+              typeElement.style.fontSize = "11px";
+
+              percentElement.style.fontSize = "10px";
+            } else if (boxWidth >= 120) {
+              /*
+               * MEDIUM
+               */
+              valueElement.style.fontSize = "16px";
+
+              strikeElement.style.fontSize = "13px";
+
+              typeElement.style.fontSize = "10px";
+
+              percentElement.style.fontSize = "9px";
+            } else if (boxWidth >= 80) {
+              /*
+               * SMALL
+               */
+              valueElement.style.fontSize = "13px";
+
+              strikeElement.style.fontSize = "11px";
+
+              typeElement.style.fontSize = "9px";
+
+              percentElement.style.fontSize = "8px";
+            } else if (boxWidth >= 55) {
+              /*
+               * VERY SMALL
+               */
+              valueElement.style.fontSize = "11px";
+
+              strikeElement.style.fontSize = "10px";
+
+              typeElement.style.fontSize = "8px";
+
+              percentElement.style.fontSize = "7px";
+            } else {
+              /*
+               * SMALLEST
+               */
+              valueElement.style.fontSize = "9px";
+
+              strikeElement.style.fontSize = "8px";
+
+              typeElement.style.fontSize = "7px";
+
+              percentElement.style.fontSize = "6px";
+            }
+
+            /*
+             * Always show every field.
+             */
+
+            valueElement.style.display = "";
+
+            strikeElement.style.display = "";
+
+            typeElement.style.display = "";
+
+            percentElement.style.display = "";
+
+            valueElement.style.whiteSpace = "nowrap";
+
+            strikeElement.style.whiteSpace = "nowrap";
+
+            /*
+             * Complete information on hover.
+             */
+
+            box.title =
+              box.dataset.rawValue +
+              " | Strike " +
+              box.dataset.strike +
+              " | " +
+              treemap.dataset.type +
+              " | " +
+              percentElement.textContent;
+          });
+        });
+      }
+
+      /*
+       * ==========================================================
+       * INITIAL LOAD
+       * ==========================================================
+       */
+
+      document.addEventListener("DOMContentLoaded", function () {
+        filterSnapshots();
+
+        setTimeout(buildTreemaps, 100);
+      });
+
+      /*
+       * ==========================================================
+       * RESIZE
+       * ==========================================================
+       */
+
+      window.addEventListener("resize", function () {
+        buildTreemaps();
+      });
+    </script>
+  </body>
+</html>

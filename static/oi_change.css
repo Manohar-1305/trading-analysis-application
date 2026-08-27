@@ -1,0 +1,1472 @@
+body {
+  margin: 0;
+  padding: 25px;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  background: #f1f5fa;
+  color: #222;
+}
+
+.container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+/* ============================================================
+   PAGE HEADER
+   ============================================================ */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  margin-bottom: 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+/* ============================================================
+   OI DATA BUTTON
+   ============================================================ */
+
+.oi-data-button {
+  display: inline-block;
+
+  padding: 8px 18px;
+
+  background: #0e0f0f;
+  color: white;
+
+  border: 1px solid #1d4ed8;
+  border-radius: 5px;
+
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.oi-data-button:hover {
+  background: #1d4ed8;
+}
+
+/* ============================================================
+   INFORMATION BAR
+   ============================================================ */
+
+.info {
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+
+  background: rgb(175, 172, 172);
+
+  padding: 15px;
+
+  border: 1px solid #ddd;
+  border-radius: 6px;
+
+  margin-bottom: 15px;
+}
+
+.info div {
+  font-size: 14px;
+}
+
+.info strong {
+  font-size: 18px;
+}
+
+/* ============================================================
+   FILTER
+   ============================================================ */
+
+.filter-container {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-left: auto;
+}
+
+.filter-container label {
+  font-weight: bold;
+}
+
+.time-filter {
+  padding: 8px 12px;
+
+  border: 1px solid #999;
+  border-radius: 5px;
+
+  background: white;
+
+  font-size: 14px;
+
+  min-width: 130px;
+}
+
+/* ============================================================
+   REFRESH
+   ============================================================ */
+
+.refresh-container {
+  display: flex;
+  align-items: center;
+}
+
+.refresh-button {
+  padding: 8px 18px;
+
+  border: 1px solid #dc2626;
+  border-radius: 5px;
+
+  background: #dc2626;
+  color: white;
+
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.refresh-button:hover {
+  background: #b91c1c;
+}
+
+/* ============================================================
+   DOWNLOAD DROPDOWN
+   ============================================================ */
+
+.download-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.download-button {
+  padding: 8px 18px;
+
+  border: 1px solid #15803d;
+  border-radius: 5px;
+
+  background: #16a34a;
+  color: white;
+
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.download-button:hover {
+  background: #15803d;
+}
+
+.download-menu {
+  display: none;
+
+  position: absolute;
+
+  top: 100%;
+  right: 0;
+
+  min-width: 170px;
+
+  margin-top: 3px;
+
+  background: white;
+
+  border: 1px solid #ddd;
+  border-radius: 5px;
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+
+  z-index: 1000;
+
+  overflow: hidden;
+}
+
+.download-menu a {
+  display: block;
+
+  padding: 10px 14px;
+
+  color: #222;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+  white-space: nowrap;
+}
+
+.download-menu a:hover {
+  background: #f3f4f6;
+}
+
+.download-dropdown:hover .download-menu {
+  display: block;
+}
+
+/* ============================================================
+   SUMMARY
+   ============================================================ */
+
+.summary-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 12px;
+
+  margin: 15px 0;
+}
+
+.summary-item {
+  background: white;
+
+  border: 1px solid #ddd;
+  border-radius: 6px;
+
+  padding: 12px;
+
+  min-height: 48px;
+}
+
+.summary-item strong {
+  display: block;
+
+  font-size: 12px;
+
+  margin-bottom: 6px;
+}
+
+.summary-item span {
+  display: block;
+
+  font-size: 16px;
+
+  font-weight: bold;
+}
+
+.ce-summary {
+  border-left: 4px solid #61ef44;
+}
+
+.pe-summary {
+  border-left: 4px solid #f6413b;
+}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+
+.table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  display: block;
+
+  background: white;
+
+  border: 1px solid #d1d5db;
+
+  box-sizing: border-box;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: max-content;
+
+  min-width: 100%;
+
+  max-width: none;
+
+  border-collapse: collapse;
+
+  background: white;
+
+  table-layout: fixed;
+}
+
+th,
+td {
+  border: 1px solid #d1d5db;
+
+  padding: 7px 10px;
+
+  text-align: center;
+
+  white-space: nowrap;
+
+  font-size: 12px;
+
+  line-height: 1.2;
+
+  height: 28px;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+}
+
+th {
+  font-weight: bold;
+
+  font-size: 12px;
+}
+
+/* ============================================================
+   TABLE HEADERS
+   ============================================================ */
+
+.time-header {
+  background: #e5e7eb;
+
+  width: 260px;
+
+  min-width: 260px;
+
+  max-width: 260px;
+
+  text-align: center;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: clip;
+}
+
+.volume-time-header {
+  background: #e5e7eb;
+
+  width: 260px;
+
+  min-width: 260px;
+
+  max-width: 260px;
+
+  text-align: center;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: clip;
+}
+
+.ce {
+  background: #fee2e2;
+}
+
+.pe {
+  background: #dbeafe;
+}
+
+/* ============================================================
+   TIME COLUMNS
+   ============================================================ */
+
+.time-column {
+  width: 130px;
+
+  min-width: 130px;
+
+  max-width: 130px;
+
+  text-align: center;
+
+  white-space: nowrap;
+}
+
+.volume-time-column {
+  width: 130px;
+
+  min-width: 130px;
+
+  max-width: 130px;
+
+  text-align: center;
+
+  white-space: nowrap;
+}
+
+.time-cell {
+  width: 130px;
+
+  min-width: 130px;
+
+  max-width: 130px;
+
+  text-align: center;
+
+  white-space: nowrap;
+}
+
+.volume-time-cell {
+  width: 130px;
+
+  min-width: 130px;
+
+  max-width: 130px;
+
+  text-align: center;
+
+  white-space: nowrap;
+}
+
+/* ============================================================
+   STRIKE
+   ============================================================ */
+
+.strike {
+  background: #fef3c7;
+
+  font-weight: bold;
+
+  position: sticky;
+
+  left: 0;
+
+  z-index: 5;
+
+  width: 85px;
+
+  min-width: 85px;
+
+  max-width: 85px;
+
+  text-align: center;
+
+  white-space: nowrap;
+}
+
+.strike-header {
+  background: #fef3c7;
+
+  position: sticky;
+
+  left: 0;
+
+  z-index: 6;
+
+  width: 85px;
+
+  min-width: 85px;
+
+  max-width: 85px;
+
+  text-align: center;
+
+  white-space: nowrap;
+}
+
+/* ============================================================
+   ATM ROW
+   ============================================================ */
+
+.atm-row td {
+  background: #fee2e2;
+
+  font-weight: bold;
+
+  border-top: 2px solid #ef4444;
+
+  border-bottom: 2px solid #ef4444;
+}
+
+.atm-row .strike {
+  background: #fecaca;
+}
+
+/* ============================================================
+   OI CHANGE COLORS
+   ============================================================ */
+
+.positive {
+  background: #dcfce7;
+
+  color: #166534;
+
+  font-weight: bold;
+}
+
+.negative {
+  background: #fee2e2;
+
+  color: #991b1b;
+
+  font-weight: bold;
+}
+
+.zero {
+  background: #ffffff;
+
+  color: #555;
+}
+
+/* ============================================================
+   OI POSITIVE INTENSITY
+   ============================================================ */
+
+.oi-positive-1 {
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: bold;
+}
+
+.oi-positive-2 {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: bold;
+}
+
+.oi-positive-3 {
+  background: #bbf7d0;
+  color: #14532d;
+  font-weight: bold;
+}
+
+.oi-positive-4 {
+  background: #86efac;
+  color: #14532d;
+  font-weight: bold;
+}
+
+.oi-positive-5 {
+  background: #4ade80;
+  color: #052e16;
+  font-weight: bold;
+}
+
+/* ============================================================
+   OI NEGATIVE INTENSITY
+   ============================================================ */
+
+.oi-negative-1 {
+  background: #fef2f2;
+  color: #991b1b;
+  font-weight: bold;
+}
+
+.oi-negative-2 {
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: bold;
+}
+
+.oi-negative-3 {
+  background: #fecaca;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
+.oi-negative-4 {
+  background: #fca5a5;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
+.oi-negative-5 {
+  background: #f87171;
+  color: #450a0a;
+  font-weight: bold;
+}
+
+/* ============================================================
+   ZERO OI CHANGE
+   ============================================================ */
+
+.oi-zero {
+  background: #ffffff;
+  color: #555;
+}
+
+/* ============================================================
+   ATM OI CELLS
+   ============================================================ */
+
+.atm-row .oi-positive-1,
+.atm-row .oi-positive-2,
+.atm-row .oi-positive-3,
+.atm-row .oi-positive-4,
+.atm-row .oi-positive-5,
+.atm-row .oi-negative-1,
+.atm-row .oi-negative-2,
+.atm-row .oi-negative-3,
+.atm-row .oi-negative-4,
+.atm-row .oi-negative-5,
+.atm-row .oi-zero {
+  font-weight: bold;
+}
+
+/* ============================================================
+   VOLUME CHANGE COLORS
+   ============================================================ */
+
+.volume-positive-1 {
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: bold;
+}
+
+.volume-positive-2 {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: bold;
+}
+
+.volume-positive-3 {
+  background: #bbf7d0;
+  color: #14532d;
+  font-weight: bold;
+}
+
+.volume-positive-4 {
+  background: #86efac;
+  color: #14532d;
+  font-weight: bold;
+}
+
+.volume-positive-5 {
+  background: #4ade80;
+  color: #052e16;
+  font-weight: bold;
+}
+
+/* ============================================================
+   VOLUME NEGATIVE INTENSITY
+   ============================================================ */
+
+.volume-negative-1 {
+  background: #fef2f2;
+  color: #991b1b;
+  font-weight: bold;
+}
+
+.volume-negative-2 {
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: bold;
+}
+
+.volume-negative-3 {
+  background: #fecaca;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
+.volume-negative-4 {
+  background: #fca5a5;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
+.volume-negative-5 {
+  background: #f87171;
+  color: #450a0a;
+  font-weight: bold;
+}
+
+/* ============================================================
+   ZERO VOLUME CHANGE
+   ============================================================ */
+
+.volume-zero {
+  background: #ffffff;
+  color: #555;
+}
+
+/* ============================================================
+   ATM VOLUME CELLS
+   ============================================================ */
+
+.atm-row .volume-positive-1,
+.atm-row .volume-positive-2,
+.atm-row .volume-positive-3,
+.atm-row .volume-positive-4,
+.atm-row .volume-positive-5,
+.atm-row .volume-negative-1,
+.atm-row .volume-negative-2,
+.atm-row .volume-negative-3,
+.atm-row .volume-negative-4,
+.atm-row .volume-negative-5,
+.atm-row .volume-zero {
+  font-weight: bold;
+}
+
+/* ============================================================
+   VOLUME CHANGE FALLBACK
+   ============================================================ */
+
+.volume-time-cell.positive {
+  background: #dcfce7;
+
+  color: #f90707;
+
+  font-weight: bold;
+}
+
+.volume-time-cell.negative {
+  background: #fee2e2;
+
+  color: #0cec04;
+
+  font-weight: bold;
+}
+
+.volume-time-cell.zero {
+  background: #ffffff;
+
+  color: #555;
+}
+
+/* ============================================================
+   WAITING
+   ============================================================ */
+
+.waiting {
+  background: white;
+
+  padding: 15px;
+
+  border: 1px solid #ddd;
+
+  border-radius: 6px;
+
+  color: #666;
+}
+
+/* ============================================================
+   HEADINGS
+   ============================================================ */
+
+h2 {
+  margin-top: 15px;
+
+  margin-bottom: 12px;
+
+  font-size: 20px;
+}
+
+/* ============================================================
+   TABLE + CHART SIDE-BY-SIDE
+   ============================================================ */
+
+.data-chart-row {
+  display: grid;
+
+  grid-template-columns: minmax(0, 55%) minmax(0, 45%);
+
+  gap: 20px;
+
+  align-items: stretch;
+
+  width: 100%;
+
+  margin-bottom: 20px;
+
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   LEFT TABLE PANEL
+   ============================================================ */
+
+.data-table-panel {
+  width: 100%;
+
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+}
+
+/* ============================================================
+   RIGHT CHART PANEL
+   ============================================================ */
+
+.data-chart-panel {
+  width: 100%;
+
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+/* ============================================================
+   LEFT TABLE PANEL WRAPPER
+   ============================================================ */
+
+.data-table-panel .table-wrapper {
+  width: 100%;
+
+  max-width: 100%;
+
+  overflow-x: auto;
+
+  overflow-y: hidden;
+
+  display: block;
+
+  box-sizing: border-box;
+
+  background: white;
+
+  border: 1px solid #ddd;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================
+   WIDE TABLE
+   ============================================================ */
+
+.data-table-panel .table-wrapper table {
+  width: max-content;
+
+  min-width: max-content;
+
+  max-width: none;
+
+  table-layout: fixed;
+
+  border-collapse: collapse;
+}
+
+/* ============================================================
+   LEFT TABLE CELLS
+   ============================================================ */
+
+.data-table-panel .table-wrapper th,
+.data-table-panel .table-wrapper td {
+  padding: 7px 10px;
+
+  font-size: 12px;
+
+  line-height: 1.2;
+
+  height: 28px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-align: center;
+
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   LEFT STRIKE COLUMN
+   ============================================================ */
+
+.data-table-panel .table-wrapper th.strike-header,
+.data-table-panel .table-wrapper td.strike {
+  width: 90px;
+
+  min-width: 90px;
+
+  max-width: 90px;
+
+  font-weight: bold;
+}
+/* ============================================================
+   BOLD STRIKE HEADER AND STRIKE VALUES
+   ============================================================ */
+
+.data-table-panel .table-wrapper th.strike-header,
+.data-table-panel .table-wrapper td.strike {
+  font-weight: 900 !important;
+}
+/* ============================================================
+   LEFT TIMESTAMP GROUP
+   ============================================================ */
+
+.data-table-panel .table-wrapper th.time-header,
+.data-table-panel .table-wrapper th.volume-time-header {
+  width: 260px;
+
+  min-width: 260px;
+
+  max-width: 260px;
+
+  font-size: 12px;
+
+  height: 32px;
+
+  text-align: center;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+}
+
+/* ============================================================
+   LEFT CE / PE COLUMNS
+   ============================================================ */
+
+.data-table-panel .table-wrapper th.time-column,
+.data-table-panel .table-wrapper th.volume-time-column {
+  width: 130px;
+
+  min-width: 130px;
+
+  max-width: 130px;
+
+  font-size: 11px;
+
+  height: 30px;
+
+  white-space: nowrap;
+
+  text-align: center;
+}
+
+.data-table-panel .table-wrapper td.time-cell,
+.data-table-panel .table-wrapper td.volume-time-cell {
+  width: 130px;
+
+  min-width: 130px;
+
+  max-width: 130px;
+
+  font-size: 12px;
+
+  height: 28px;
+
+  white-space: nowrap;
+
+  text-align: center;
+}
+
+/* ============================================================
+   TABLE HEADER TEXT
+   ============================================================ */
+
+.data-table-panel .table-wrapper th.time-header,
+.data-table-panel .table-wrapper th.volume-time-header {
+  text-overflow: clip;
+
+  overflow: hidden;
+}
+
+/* ============================================================
+   HORIZONTAL SCROLLBAR
+   ============================================================ */
+
+.data-table-panel .table-wrapper::-webkit-scrollbar {
+  width: 12px;
+
+  height: 14px;
+}
+
+.data-table-panel .table-wrapper::-webkit-scrollbar-track {
+  background: #e5e7eb;
+
+  border-radius: 7px;
+}
+
+.data-table-panel .table-wrapper::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+
+  border-radius: 7px;
+
+  border: 2px solid #e5e7eb;
+}
+
+.data-table-panel .table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* ============================================================
+   SIDE CHART CONTAINER
+   ============================================================ */
+
+.side-chart-container {
+  width: 100%;
+
+  height: 100%;
+
+  min-height: 330px;
+
+  background: rgb(251, 247, 247);
+
+  border: 1px solid #ddd;
+
+  border-radius: 6px;
+
+  padding: 10px;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+/* ============================================================
+   BAR CHART
+   ============================================================ */
+
+.side-chart-container .bar-chart {
+  width: 100%;
+
+  height: 100%;
+
+  min-height: 0;
+
+  flex: 1;
+}
+
+/* ============================================================
+   CHART CANVAS
+   ============================================================ */
+
+.data-chart-panel canvas {
+  display: block;
+
+  width: 100% !important;
+
+  height: 100% !important;
+
+  max-width: 100%;
+
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   CHART HEADING
+   ============================================================ */
+
+.data-chart-panel h2 {
+  margin-top: 0;
+
+  margin-bottom: 12px;
+
+  font-size: 20px;
+}
+
+/* ============================================================
+   SAME HEIGHT FOR TABLE AND CHART BOX
+   ============================================================ */
+
+.data-chart-row {
+  min-height: 330px;
+}
+
+.data-table-panel,
+.data-chart-panel {
+  height: auto;
+
+  align-self: stretch;
+}
+
+.data-chart-panel .side-chart-container {
+  flex: 1 1 auto;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1000px) {
+  .data-chart-row {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+    width: 100%;
+
+    min-height: 0;
+  }
+
+  .data-table-panel,
+  .data-chart-panel {
+    width: 100%;
+
+    flex: none;
+
+    height: auto;
+  }
+
+  .data-table-panel {
+    overflow: visible;
+  }
+
+  .data-table-panel .table-wrapper {
+    width: 100%;
+
+    max-width: 100%;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    height: auto;
+  }
+
+  .side-chart-container {
+    width: 100%;
+
+    height: 350px;
+
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 800px) {
+  body {
+    padding: 15px;
+  }
+
+  .info {
+    flex-wrap: wrap;
+
+    gap: 15px;
+  }
+
+  .filter-container {
+    margin-left: 0;
+  }
+
+  .container {
+    width: 100%;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .page-header {
+    flex-wrap: wrap;
+  }
+
+  .data-chart-row {
+    gap: 15px;
+  }
+
+  .data-table-panel .table-wrapper th,
+  .data-table-panel .table-wrapper td {
+    font-size: 11px;
+
+    padding: 6px 8px;
+  }
+
+  .data-table-panel .table-wrapper th.time-header,
+  .data-table-panel .table-wrapper th.volume-time-header {
+    width: 240px;
+
+    min-width: 240px;
+
+    max-width: 240px;
+  }
+
+  .data-table-panel .table-wrapper th.time-column,
+  .data-table-panel .table-wrapper th.volume-time-column,
+  .data-table-panel .table-wrapper td.time-cell,
+  .data-table-panel .table-wrapper td.volume-time-cell {
+    width: 120px;
+
+    min-width: 120px;
+
+    max-width: 120px;
+  }
+
+  .side-chart-container {
+    height: 350px;
+
+    min-height: 350px;
+  }
+}
+/* ============================================================
+   OI CHANGE SNAPSHOT BOXES
+   ============================================================ */
+
+.oi-snapshots-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.oi-snapshot-box {
+  width: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+  padding: 15px;
+  overflow-x: auto;
+}
+
+.oi-snapshot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.oi-snapshot-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.oi-snapshot-time {
+  font-size: 14px;
+  font-weight: bold;
+  color: #555;
+}
+
+.oi-snapshot-box .table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.oi-snapshot-box table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  background: white;
+}
+
+.oi-snapshot-box th,
+.oi-snapshot-box td {
+  border: 1px solid #d1d5db;
+  padding: 7px 10px;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.2;
+  height: 28px;
+  box-sizing: border-box;
+}
+
+.oi-snapshot-box th {
+  font-weight: bold;
+}
+
+.oi-snapshot-box .strike {
+  background: #fef3c7;
+  font-weight: bold;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+.oi-snapshot-box .ce {
+  background: #fee2e2;
+}
+
+.oi-snapshot-box .pe {
+  background: #dbeafe;
+}
+
+.oi-snapshot-box .positive {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .negative {
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .zero {
+  background: #ffffff;
+  color: #555;
+}
+
+.oi-snapshot-box .atm-row td {
+  background: #fee2e2;
+  font-weight: bold;
+  border-top: 2px solid #ef4444;
+  border-bottom: 2px solid #ef4444;
+}
+
+.oi-snapshot-box .atm-row .strike {
+  background: #fecaca;
+}
+
+.oi-snapshot-box .oi-positive-1 {
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-positive-2 {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-positive-3 {
+  background: #bbf7d0;
+  color: #14532d;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-positive-4 {
+  background: #86efac;
+  color: #14532d;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-positive-5 {
+  background: #4ade80;
+  color: #052e16;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-negative-1 {
+  background: #fef2f2;
+  color: #991b1b;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-negative-2 {
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-negative-3 {
+  background: #fecaca;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-negative-4 {
+  background: #fca5a5;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-negative-5 {
+  background: #f87171;
+  color: #450a0a;
+  font-weight: bold;
+}
+
+.oi-snapshot-box .oi-zero {
+  background: #ffffff;
+  color: #555;
+}
+
+/* ============================================================
+   OI SNAPSHOT META INFORMATION
+   ============================================================ */
+
+.oi-snapshot-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #afacac;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.oi-snapshot-info div {
+  font-size: 13px;
+}
+
+.oi-snapshot-info strong {
+  font-size: 16px;
+}
+
+/* ============================================================
+   OI SNAPSHOT TABLE
+   ============================================================ */
+
+.oi-snapshot-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.oi-snapshot-table table {
+  width: 100%;
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+.oi-snapshot-table th,
+.oi-snapshot-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 800px) {
+  .oi-snapshot-box {
+    padding: 10px;
+  }
+
+  .oi-snapshot-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .oi-snapshot-info {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .oi-snapshot-box th,
+  .oi-snapshot-box td {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}
+.difference-positive {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  border: 1px solid #86efac !important;
+  border-left: 4px solid #22c55e !important;
+}
+
+.difference-negative {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+  border-left: 4px solid #ef4444 !important;
+}
+
+.difference-neutral {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+  border-left: 4px solid #9ca3af !important;
+}

@@ -1,0 +1,1668 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="refresh" content="180" />
+
+    <title>OI Change</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='oi_change.css') }}"
+    />
+
+    <style>
+      .charts-section {
+        margin-top: 30px;
+      }
+
+      .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .chart-header h2 {
+        margin: 0;
+      }
+
+      .chart-filter {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .chart-filter label {
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      .chart-filter select {
+        padding: 7px 10px;
+        border: 1px solid #999;
+        border-radius: 5px;
+        background: white;
+        font-size: 14px;
+      }
+
+      .chart-container {
+        width: 100%;
+        height: 450px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 15px;
+        box-sizing: border-box;
+        margin-bottom: 25px;
+        overflow-x: auto;
+      }
+
+      .bar-chart {
+        width: 100%;
+        height: 100%;
+      }
+
+      .chart-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #666;
+      }
+
+      /* =====================================================
+         TOTAL ROW
+         ===================================================== */
+
+      .total-row td {
+        background: #e5e7eb;
+        color: #111827;
+        font-weight: bold;
+        border-top: 2px solid #374151;
+      }
+
+      .total-row .total-label {
+        background: #fef3c7;
+        position: sticky;
+        left: 0;
+        z-index: 5;
+      }
+
+      .total-ce {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
+      }
+
+      .total-pe {
+        background: #dbeafe !important;
+        color: #1e40af !important;
+      }
+
+      /* =====================================================
+         VOLUME INTENSITY
+         ===================================================== */
+
+      #volumeChangeTable .volume-time-cell.volume-positive-1 {
+        background: #f0fdf4 !important;
+        color: #166534 !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-positive-2 {
+        background: #dcfce7 !important;
+        color: #166534 !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-positive-3 {
+        background: #bbf7d0 !important;
+        color: #14532d !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-positive-4 {
+        background: #86efac !important;
+        color: #14532d !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-positive-5 {
+        background: #4ade80 !important;
+        color: #052e16 !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-negative-1 {
+        background: #fef2f2 !important;
+        color: #991b1b !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-negative-2 {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-negative-3 {
+        background: #fecaca !important;
+        color: #7f1d1d !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-negative-4 {
+        background: #fca5a5 !important;
+        color: #7f1d1d !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-negative-5 {
+        background: #f87171 !important;
+        color: #450a0a !important;
+        font-weight: bold;
+      }
+
+      #volumeChangeTable .volume-time-cell.volume-zero {
+        background: #ffffff !important;
+        color: #555 !important;
+        font-weight: normal;
+      }
+
+      /* =====================================================
+         OI + VOLUME SIGNAL
+         ===================================================== */
+
+      .market-signal-section {
+        margin-top: 20px;
+        margin-bottom: 25px;
+      }
+
+      .market-signal-title {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+      }
+
+      .market-signal-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        width: 100%;
+      }
+
+      .market-signal-card {
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 12px;
+        box-sizing: border-box;
+        text-align: center;
+      }
+
+      .market-signal-card strong {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 7px;
+      }
+
+      .market-signal-card span {
+        display: block;
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .signal-bullish {
+        background: #dcfce7 !important;
+        color: #166534 !important;
+        border-color: #86efac !important;
+      }
+
+      .signal-bearish {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
+        border-color: #fca5a5 !important;
+      }
+
+      .signal-neutral {
+        background: #f3f4f6 !important;
+        color: #374151 !important;
+        border-color: #d1d5db !important;
+      }
+
+      .signal-mixed {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+        border-color: #fcd34d !important;
+      }
+
+      /* =====================================================
+         TABLE + CHART SIDE BY SIDE
+         ===================================================== */
+
+      .data-chart-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .data-table-panel {
+        flex: 0 0 55%;
+        width: 55%;
+        min-width: 0;
+      }
+
+      .data-chart-panel {
+        flex: 1 1 45%;
+        width: 45%;
+        min-width: 0;
+      }
+
+      .data-table-panel .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .data-table-panel .table-wrapper table {
+        width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+      }
+
+      .data-table-panel .table-wrapper th,
+      .data-table-panel .table-wrapper td {
+        padding: 3px 4px;
+        font-size: 10px;
+      }
+
+      .side-chart-container {
+        width: 100%;
+        height: 330px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .side-chart-container .bar-chart {
+        width: 100%;
+        height: 100%;
+      }
+
+      @media (max-width: 1000px) {
+        .data-chart-row {
+          flex-direction: column;
+        }
+
+        .data-table-panel,
+        .data-chart-panel {
+          width: 100%;
+          flex: 1 1 100%;
+        }
+
+        .side-chart-container {
+          height: 350px;
+        }
+
+        .market-signal-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>Present CE PE OI Change</h1>
+      </div>
+
+      <div class="info">
+        <div>
+          Spot<br />
+          <strong>
+            {% if spot is not none %} {{ "%.2f"|format(spot) }} {% else %} -- {%
+            endif %}
+          </strong>
+        </div>
+
+        <div>
+          ATM<br />
+          <strong>
+            {% if atm is not none %} {{ "%.0f"|format(atm) }} {% else %} -- {%
+            endif %}
+          </strong>
+        </div>
+
+        <div>
+          Expiry<br />
+          <strong>
+            {% if expiry %} {{ expiry }} {% else %} -- {% endif %}
+          </strong>
+        </div>
+
+        <div class="filter-container">
+          <label for="timeFilter">Show:</label>
+
+          <select id="timeFilter" class="time-filter" onchange="filterTime()">
+            <option value="1">Latest 1</option>
+            <option value="5">Last 5</option>
+            <option value="10">Last 10</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+
+        <!-- =====================================================
+             NAVIGATION
+             ===================================================== -->
+
+        <div class="refresh-container">
+          <a href="/" class="oi-data-button"> OI Data </a>
+
+          <a href="/oi-treemap" class="oi-data-button"> OI Treemap </a>
+        </div>
+
+        <!-- =====================================================
+             REFRESH
+             ===================================================== -->
+
+        <div class="refresh-container">
+          <button
+            type="button"
+            class="refresh-button"
+            onclick="window.location.reload()"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <!-- =====================================================
+             DOWNLOAD
+             ===================================================== -->
+
+        <div class="refresh-container">
+          <div class="download-dropdown">
+            <button type="button" class="download-button">
+              Download OI Change
+            </button>
+
+            <div class="download-menu">
+              <a href="{{ url_for('download_oi_change_csv') }}">
+                Download CSV
+              </a>
+
+              <a href="{{ url_for('download_oi_change') }}"> Download PDF </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           OI SUMMARY
+           ===================================================== -->
+
+      <section class="summary-grid">
+        <div class="summary-item ce-summary">
+          <strong>CE HIGHEST OI CHANGE</strong>
+          <span id="ceHighestOI">--</span>
+        </div>
+
+        <div class="summary-item ce-summary">
+          <strong>CE LOWEST OI CHANGE</strong>
+          <span id="ceLowestOI">--</span>
+        </div>
+
+        <div class="summary-item pe-summary">
+          <strong>PE HIGHEST OI CHANGE</strong>
+          <span id="peHighestOI">--</span>
+        </div>
+
+        <div class="summary-item pe-summary">
+          <strong>PE LOWEST OI CHANGE</strong>
+          <span id="peLowestOI">--</span>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           VOLUME SUMMARY
+           ===================================================== -->
+
+      <section class="summary-grid">
+        <div class="summary-item ce-summary">
+          <strong>CE HIGHEST VOLUME CHANGE</strong>
+          <span id="ceHighestVolume">--</span>
+        </div>
+
+        <div class="summary-item ce-summary">
+          <strong>CE LOWEST VOLUME CHANGE</strong>
+          <span id="ceLowestVolume">--</span>
+        </div>
+
+        <div class="summary-item pe-summary">
+          <strong>PE HIGHEST VOLUME CHANGE</strong>
+          <span id="peHighestVolume">--</span>
+        </div>
+
+        <div class="summary-item pe-summary">
+          <strong>PE LOWEST VOLUME CHANGE</strong>
+          <span id="peLowestVolume">--</span>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           OI + VOLUME DIFFERENCE
+           ===================================================== -->
+
+      <section class="summary-grid">
+        <div class="summary-item ce-summary" id="oiDifferenceCard">
+          <strong>OI DIFFERENCE (CE - PE)</strong>
+          <span id="oiDifference">--</span>
+        </div>
+
+        <div class="summary-item ce-summary" id="volumeDifferenceCard">
+          <strong>VOLUME DIFFERENCE (CE - PE)</strong>
+          <span id="volumeDifference">--</span>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           OI + VOLUME MARKET SIGNAL
+           ===================================================== -->
+
+      <section class="market-signal-section">
+        <h2 class="market-signal-title">OI + Volume Signal</h2>
+
+        <div class="market-signal-grid">
+          <div class="market-signal-card" id="ceSignalCard">
+            <strong>CE SIGNAL</strong>
+            <span id="ceSignal">--</span>
+          </div>
+
+          <div class="market-signal-card" id="peSignalCard">
+            <strong>PE SIGNAL</strong>
+            <span id="peSignal">--</span>
+          </div>
+
+          <div class="market-signal-card" id="marketSignalCard">
+            <strong>OVERALL MARKET SIGNAL</strong>
+            <span id="marketSignal">--</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           OI TABLE + OI CHART
+           ===================================================== -->
+
+      <div class="data-chart-row">
+        <div class="data-table-panel">
+          <h2>OI Change</h2>
+
+          {% if rows %}
+
+          <div class="table-wrapper">
+            <table id="oiChangeTable">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="strike-header">STRIKE</th>
+
+                  {% for timestamp in columns %}
+                  <th
+                    colspan="2"
+                    class="time-column time-header"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ timestamp }}
+                  </th>
+                  {% endfor %}
+                </tr>
+
+                <tr>
+                  {% for timestamp in columns %}
+                  <th class="ce time-column" data-column="{{ loop.index0 }}">
+                    CE OI CHANGE
+                  </th>
+
+                  <th class="pe time-column" data-column="{{ loop.index0 }}">
+                    PE OI CHANGE
+                  </th>
+                  {% endfor %}
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for row in rows %}
+                <tr {% if row.atm %}class="atm-row" {% endif %}>
+                  <td class="strike">{{ "{:,.0f}".format(row.strike) }}</td>
+
+                  {% for change in row.changes %} {% if change.ce > 0 %}
+                  <td
+                    class="positive time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ "{:,.0f}".format(change.ce) }}
+                  </td>
+                  {% elif change.ce < 0 %}
+                  <td
+                    class="negative time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ "{:,.0f}".format(change.ce) }}
+                  </td>
+                  {% else %}
+                  <td class="zero time-cell" data-column="{{ loop.index0 }}">
+                    0
+                  </td>
+                  {% endif %} {% if change.pe > 0 %}
+                  <td
+                    class="positive time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ "{:,.0f}".format(change.pe) }}
+                  </td>
+                  {% elif change.pe < 0 %}
+                  <td
+                    class="negative time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ "{:,.0f}".format(change.pe) }}
+                  </td>
+                  {% else %}
+                  <td class="zero time-cell" data-column="{{ loop.index0 }}">
+                    0
+                  </td>
+                  {% endif %} {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+
+              <tfoot>
+                <tr class="total-row">
+                  <td class="total-label">TOTAL</td>
+
+                  {% for timestamp in columns %}
+                  <td
+                    class="total-ce time-column"
+                    data-column="{{ loop.index0 }}"
+                    id="oi-total-ce-{{ loop.index0 }}"
+                  >
+                    0
+                  </td>
+
+                  <td
+                    class="total-pe time-column"
+                    data-column="{{ loop.index0 }}"
+                    id="oi-total-pe-{{ loop.index0 }}"
+                  >
+                    0
+                  </td>
+                  {% endfor %}
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {% else %}
+
+          <div class="waiting">Waiting for option-chain data.</div>
+
+          {% endif %}
+        </div>
+
+        <div class="data-chart-panel">
+          <div class="chart-header">
+            <h2>OI Change Bar Chart</h2>
+
+            <div class="chart-filter">
+              <label for="oiChartFilter">Show:</label>
+
+              <select id="oiChartFilter" onchange="updateCharts()">
+                <option value="1">Latest 1</option>
+                <option value="5">Last 5</option>
+                <option value="10">Last 10</option>
+                <option value="all">All</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="side-chart-container">
+            <canvas id="oiBarChart" class="bar-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           VOLUME TABLE + VOLUME CHART
+           ===================================================== -->
+
+      <div class="data-chart-row">
+        <div class="data-table-panel">
+          <h2>Volume Change</h2>
+
+          {% if volume_rows %}
+
+          <div class="table-wrapper">
+            <table id="volumeChangeTable">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="strike-header">STRIKE</th>
+
+                  {% for timestamp in columns %}
+                  <th
+                    colspan="2"
+                    class="volume-time-column volume-time-header"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ timestamp }}
+                  </th>
+                  {% endfor %}
+                </tr>
+
+                <tr>
+                  {% for timestamp in columns %}
+                  <th
+                    class="ce volume-time-column"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    CE VOLUME CHANGE
+                  </th>
+
+                  <th
+                    class="pe volume-time-column"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    PE VOLUME CHANGE
+                  </th>
+                  {% endfor %}
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for row in volume_rows %}
+                <tr {% if row.atm %}class="atm-row" {% endif %}>
+                  <td class="strike">{{ "{:,.0f}".format(row.strike) }}</td>
+
+                  {% for change in row.changes %} {% if change.ce > 0 %}
+                  <td
+                    class="positive volume-time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ "{:,.0f}".format(change.ce) }}
+                  </td>
+                  {% elif change.ce < 0 %}
+                  <td
+                    class="negative volume-time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ "{:,.0f}".format(change.ce) }}
+                  </td>
+                  {% else %}
+                  <td
+                    class="zero volume-time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    0
+                  </td>
+                  {% endif %} {% if change.pe > 0 %}
+                  <td
+                    class="positive volume-time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ "{:,.0f}".format(change.pe) }}
+                  </td>
+                  {% elif change.pe < 0 %}
+                  <td
+                    class="negative volume-time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    {{ "{:,.0f}".format(change.pe) }}
+                  </td>
+                  {% else %}
+                  <td
+                    class="zero volume-time-cell"
+                    data-column="{{ loop.index0 }}"
+                  >
+                    0
+                  </td>
+                  {% endif %} {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+
+              <tfoot>
+                <tr class="total-row">
+                  <td class="total-label">TOTAL</td>
+
+                  {% for timestamp in columns %}
+                  <td
+                    class="total-ce volume-time-column"
+                    data-column="{{ loop.index0 }}"
+                    id="volume-total-ce-{{ loop.index0 }}"
+                  >
+                    0
+                  </td>
+
+                  <td
+                    class="total-pe volume-time-column"
+                    data-column="{{ loop.index0 }}"
+                    id="volume-total-pe-{{ loop.index0 }}"
+                  >
+                    0
+                  </td>
+                  {% endfor %}
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {% else %}
+
+          <div class="waiting">Waiting for volume data.</div>
+
+          {% endif %}
+        </div>
+
+        <div class="data-chart-panel">
+          <div class="chart-header">
+            <h2>Volume Change Bar Chart</h2>
+
+            <div class="chart-filter">
+              <label for="volumeChartFilter">Show:</label>
+
+              <select id="volumeChartFilter" onchange="updateCharts()">
+                <option value="1">Latest 1</option>
+                <option value="5">Last 5</option>
+                <option value="10">Last 10</option>
+                <option value="all">All</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="side-chart-container">
+            <canvas id="volumeBarChart" class="bar-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+      let oiChart = null;
+      let volumeChart = null;
+
+      function getNumber(value) {
+        if (
+          value === null ||
+          value === undefined ||
+          value === "" ||
+          value === "-"
+        ) {
+          return 0;
+        }
+
+        return Number(String(value).replace(/,/g, "").trim()) || 0;
+      }
+
+      function calculateTableTotals(tableId, prefix) {
+        const table = document.getElementById(tableId);
+
+        if (!table) {
+          return;
+        }
+
+        const headers = table.querySelectorAll(
+          "thead tr:first-child th[data-column]",
+        );
+
+        let totalColumns = 0;
+
+        headers.forEach(function (header) {
+          const column = parseInt(header.getAttribute("data-column"), 10);
+
+          if (column >= totalColumns) {
+            totalColumns = column + 1;
+          }
+        });
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        for (let column = 0; column < totalColumns; column++) {
+          let ceTotal = 0;
+          let peTotal = 0;
+
+          rows.forEach(function (row) {
+            const cells = row.querySelectorAll("td");
+
+            const ceCell = cells[1 + column * 2];
+            const peCell = cells[2 + column * 2];
+
+            if (ceCell) {
+              ceTotal += getNumber(ceCell.textContent);
+            }
+
+            if (peCell) {
+              peTotal += getNumber(peCell.textContent);
+            }
+          });
+
+          const ceElement = document.getElementById(
+            prefix + "-total-ce-" + column,
+          );
+
+          const peElement = document.getElementById(
+            prefix + "-total-pe-" + column,
+          );
+
+          if (ceElement) {
+            ceElement.textContent = ceTotal.toLocaleString("en-IN");
+          }
+
+          if (peElement) {
+            peElement.textContent = peTotal.toLocaleString("en-IN");
+          }
+        }
+      }
+
+      function applyVolumeIntensityColors() {
+        const volumeCells = document.querySelectorAll(
+          "#volumeChangeTable .volume-time-cell",
+        );
+
+        if (!volumeCells.length) {
+          return;
+        }
+
+        let maxAbsoluteValue = 0;
+
+        volumeCells.forEach(function (cell) {
+          const value = getNumber(cell.textContent);
+
+          if (Math.abs(value) > maxAbsoluteValue) {
+            maxAbsoluteValue = Math.abs(value);
+          }
+        });
+
+        if (maxAbsoluteValue === 0) {
+          volumeCells.forEach(function (cell) {
+            cell.classList.remove("positive", "negative");
+            cell.classList.add("volume-zero");
+          });
+
+          return;
+        }
+
+        volumeCells.forEach(function (cell) {
+          const value = getNumber(cell.textContent);
+
+          cell.classList.remove(
+            "positive",
+            "negative",
+            "zero",
+            "volume-positive-1",
+            "volume-positive-2",
+            "volume-positive-3",
+            "volume-positive-4",
+            "volume-positive-5",
+            "volume-negative-1",
+            "volume-negative-2",
+            "volume-negative-3",
+            "volume-negative-4",
+            "volume-negative-5",
+            "volume-zero",
+          );
+
+          if (value === 0) {
+            cell.classList.add("volume-zero");
+            return;
+          }
+
+          const percentage = Math.abs(value) / maxAbsoluteValue;
+
+          let intensity;
+
+          if (percentage <= 0.2) {
+            intensity = 1;
+          } else if (percentage <= 0.4) {
+            intensity = 2;
+          } else if (percentage <= 0.6) {
+            intensity = 3;
+          } else if (percentage <= 0.8) {
+            intensity = 4;
+          } else {
+            intensity = 5;
+          }
+
+          if (value > 0) {
+            cell.classList.add("volume-positive-" + intensity);
+          } else {
+            cell.classList.add("volume-negative-" + intensity);
+          }
+        });
+      }
+
+      function updateLatestSummary() {
+        const oiRows = document.querySelectorAll("#oiChangeTable tbody tr");
+
+        const volumeRows = document.querySelectorAll(
+          "#volumeChangeTable tbody tr",
+        );
+
+        let highestCE = null;
+        let lowestCE = null;
+        let highestPE = null;
+        let lowestPE = null;
+
+        let highestCEVolume = null;
+        let lowestCEVolume = null;
+        let highestPEVolume = null;
+        let lowestPEVolume = null;
+
+        const processRows = function (rows, isVolume) {
+          rows.forEach(function (row) {
+            const cells = row.querySelectorAll("td");
+
+            if (cells.length < 3) {
+              return;
+            }
+
+            const strike = getNumber(cells[0].textContent);
+
+            const dataCells = Array.from(cells).slice(1);
+
+            if (dataCells.length < 2) {
+              return;
+            }
+
+            const ceIndex = dataCells.length - 2;
+            const peIndex = dataCells.length - 1;
+
+            const ce = getNumber(dataCells[ceIndex].textContent);
+            const pe = getNumber(dataCells[peIndex].textContent);
+
+            if (isVolume) {
+              if (highestCEVolume === null || ce > highestCEVolume.value) {
+                highestCEVolume = {
+                  value: ce,
+                  strike: strike,
+                };
+              }
+
+              if (lowestCEVolume === null || ce < lowestCEVolume.value) {
+                lowestCEVolume = {
+                  value: ce,
+                  strike: strike,
+                };
+              }
+
+              if (highestPEVolume === null || pe > highestPEVolume.value) {
+                highestPEVolume = {
+                  value: pe,
+                  strike: strike,
+                };
+              }
+
+              if (lowestPEVolume === null || pe < lowestPEVolume.value) {
+                lowestPEVolume = {
+                  value: pe,
+                  strike: strike,
+                };
+              }
+            } else {
+              if (highestCE === null || ce > highestCE.value) {
+                highestCE = {
+                  value: ce,
+                  strike: strike,
+                };
+              }
+
+              if (lowestCE === null || ce < lowestCE.value) {
+                lowestCE = {
+                  value: ce,
+                  strike: strike,
+                };
+              }
+
+              if (highestPE === null || pe > highestPE.value) {
+                highestPE = {
+                  value: pe,
+                  strike: strike,
+                };
+              }
+
+              if (lowestPE === null || pe < lowestPE.value) {
+                lowestPE = {
+                  value: pe,
+                  strike: strike,
+                };
+              }
+            }
+          });
+        };
+
+        processRows(oiRows, false);
+        processRows(volumeRows, true);
+
+        if (highestCE) {
+          document.getElementById("ceHighestOI").textContent =
+            highestCE.value.toLocaleString("en-IN") +
+            " @ " +
+            highestCE.strike.toLocaleString("en-IN");
+        }
+
+        if (lowestCE) {
+          document.getElementById("ceLowestOI").textContent =
+            lowestCE.value.toLocaleString("en-IN") +
+            " @ " +
+            lowestCE.strike.toLocaleString("en-IN");
+        }
+
+        if (highestPE) {
+          document.getElementById("peHighestOI").textContent =
+            highestPE.value.toLocaleString("en-IN") +
+            " @ " +
+            highestPE.strike.toLocaleString("en-IN");
+        }
+
+        if (lowestPE) {
+          document.getElementById("peLowestOI").textContent =
+            lowestPE.value.toLocaleString("en-IN") +
+            " @ " +
+            lowestPE.strike.toLocaleString("en-IN");
+        }
+
+        if (highestCEVolume) {
+          document.getElementById("ceHighestVolume").textContent =
+            highestCEVolume.value.toLocaleString("en-IN") +
+            " @ " +
+            highestCEVolume.strike.toLocaleString("en-IN");
+        }
+
+        if (lowestCEVolume) {
+          document.getElementById("ceLowestVolume").textContent =
+            lowestCEVolume.value.toLocaleString("en-IN") +
+            " @ " +
+            lowestCEVolume.strike.toLocaleString("en-IN");
+        }
+
+        if (highestPEVolume) {
+          document.getElementById("peHighestVolume").textContent =
+            highestPEVolume.value.toLocaleString("en-IN") +
+            " @ " +
+            highestPEVolume.strike.toLocaleString("en-IN");
+        }
+
+        if (lowestPEVolume) {
+          document.getElementById("peLowestVolume").textContent =
+            lowestPEVolume.value.toLocaleString("en-IN") +
+            " @ " +
+            lowestPEVolume.strike.toLocaleString("en-IN");
+        }
+
+        updateMarketSignal();
+      }
+
+      function updateDifferenceCard(card, value) {
+        if (!card) {
+          return;
+        }
+
+        card.classList.remove(
+          "difference-positive",
+          "difference-negative",
+          "difference-neutral",
+        );
+
+        if (value > 0) {
+          card.classList.add("difference-positive");
+        } else if (value < 0) {
+          card.classList.add("difference-negative");
+        } else {
+          card.classList.add("difference-neutral");
+        }
+      }
+
+      function updateMarketSignal() {
+        const oiTable = document.getElementById("oiChangeTable");
+
+        const volumeTable = document.getElementById("volumeChangeTable");
+
+        const ceSignalElement = document.getElementById("ceSignal");
+
+        const peSignalElement = document.getElementById("peSignal");
+
+        const marketSignalElement = document.getElementById("marketSignal");
+
+        const ceSignalCard = document.getElementById("ceSignalCard");
+
+        const peSignalCard = document.getElementById("peSignalCard");
+
+        const marketSignalCard = document.getElementById("marketSignalCard");
+
+        const oiDifferenceCard = document.getElementById("oiDifferenceCard");
+
+        const volumeDifferenceCard = document.getElementById(
+          "volumeDifferenceCard",
+        );
+
+        if (!oiTable || !volumeTable) {
+          return;
+        }
+
+        const oiRows = oiTable.querySelectorAll("tbody tr");
+
+        const volumeRows = volumeTable.querySelectorAll("tbody tr");
+
+        let ceOI = 0;
+        let peOI = 0;
+
+        let ceVolume = 0;
+        let peVolume = 0;
+
+        oiRows.forEach(function (row) {
+          const cells = row.querySelectorAll("td");
+
+          if (cells.length < 3) {
+            return;
+          }
+
+          const ceCell = cells[cells.length - 2];
+
+          const peCell = cells[cells.length - 1];
+
+          ceOI += getNumber(ceCell.textContent);
+
+          peOI += getNumber(peCell.textContent);
+        });
+
+        volumeRows.forEach(function (row) {
+          const cells = row.querySelectorAll("td");
+
+          if (cells.length < 3) {
+            return;
+          }
+
+          const ceCell = cells[cells.length - 2];
+
+          const peCell = cells[cells.length - 1];
+
+          ceVolume += getNumber(ceCell.textContent);
+
+          peVolume += getNumber(peCell.textContent);
+        });
+
+        /* ======================================================
+           OI DIFFERENCE
+           
+           CE - PE using absolute numbers.
+        ====================================================== */
+
+        const oiDifference = Math.abs(ceOI) - Math.abs(peOI);
+
+        const oiDifferenceElement = document.getElementById("oiDifference");
+
+        if (oiDifferenceElement) {
+          oiDifferenceElement.textContent =
+            oiDifference.toLocaleString("en-IN");
+        }
+
+        updateDifferenceCard(oiDifferenceCard, oiDifference);
+
+        /* ======================================================
+           VOLUME DIFFERENCE
+           
+           CE - PE using absolute numbers.
+        ====================================================== */
+
+        const volumeDifference = Math.abs(ceVolume) - Math.abs(peVolume);
+
+        const volumeDifferenceElement =
+          document.getElementById("volumeDifference");
+
+        if (volumeDifferenceElement) {
+          volumeDifferenceElement.textContent =
+            volumeDifference.toLocaleString("en-IN");
+        }
+
+        updateDifferenceCard(volumeDifferenceCard, volumeDifference);
+
+        /* ======================================================
+           CE INTERPRETATION
+           
+           CE OI ↓ + Volume ↑ = Bullish
+           CE OI ↑ + Volume ↑ = Bearish
+        ====================================================== */
+
+        let ceSignal = "NEUTRAL";
+        let ceScore = 0;
+
+        if (ceOI < 0 && ceVolume > 0) {
+          ceSignal = "BULLISH";
+          ceScore = Math.abs(ceOI) * ceVolume;
+        } else if (ceOI > 0 && ceVolume > 0) {
+          ceSignal = "BEARISH";
+          ceScore = Math.abs(ceOI) * ceVolume;
+        } else if (ceOI < 0 && ceVolume < 0) {
+          ceSignal = "WEAK BULLISH";
+          ceScore = Math.abs(ceOI);
+        } else if (ceOI > 0 && ceVolume < 0) {
+          ceSignal = "WEAK BEARISH";
+          ceScore = Math.abs(ceOI);
+        }
+
+        /* ======================================================
+           PE INTERPRETATION
+           
+           PE OI ↓ + Volume ↑ = Bearish
+           PE OI ↑ + Volume ↑ = Bullish
+        ====================================================== */
+
+        let peSignal = "NEUTRAL";
+        let peScore = 0;
+
+        if (peOI < 0 && peVolume > 0) {
+          peSignal = "BEARISH";
+          peScore = Math.abs(peOI) * peVolume;
+        } else if (peOI > 0 && peVolume > 0) {
+          peSignal = "BULLISH";
+          peScore = Math.abs(peOI) * peVolume;
+        } else if (peOI < 0 && peVolume < 0) {
+          peSignal = "WEAK BEARISH";
+          peScore = Math.abs(peOI);
+        } else if (peOI > 0 && peVolume < 0) {
+          peSignal = "WEAK BULLISH";
+          peScore = Math.abs(peOI);
+        }
+
+        ceSignalElement.textContent =
+          ceSignal +
+          " | OI " +
+          (ceOI >= 0 ? "↑" : "↓") +
+          " | VOL " +
+          (ceVolume >= 0 ? "↑" : "↓");
+
+        peSignalElement.textContent =
+          peSignal +
+          " | OI " +
+          (peOI >= 0 ? "↑" : "↓") +
+          " | VOL " +
+          (peVolume >= 0 ? "↑" : "↓");
+
+        ceSignalCard.classList.remove(
+          "signal-bullish",
+          "signal-bearish",
+          "signal-neutral",
+          "signal-mixed",
+        );
+
+        peSignalCard.classList.remove(
+          "signal-bullish",
+          "signal-bearish",
+          "signal-neutral",
+          "signal-mixed",
+        );
+
+        marketSignalCard.classList.remove(
+          "signal-bullish",
+          "signal-bearish",
+          "signal-neutral",
+          "signal-mixed",
+        );
+
+        if (ceSignal.includes("BULLISH")) {
+          ceSignalCard.classList.add("signal-bullish");
+        } else if (ceSignal.includes("BEARISH")) {
+          ceSignalCard.classList.add("signal-bearish");
+        } else {
+          ceSignalCard.classList.add("signal-neutral");
+        }
+
+        if (peSignal.includes("BULLISH")) {
+          peSignalCard.classList.add("signal-bullish");
+        } else if (peSignal.includes("BEARISH")) {
+          peSignalCard.classList.add("signal-bearish");
+        } else {
+          peSignalCard.classList.add("signal-neutral");
+        }
+
+        /* ======================================================
+           OVERALL SIGNAL
+           
+           Compare the combined OI + Volume strength.
+        ====================================================== */
+
+        let overallSignal = "NEUTRAL";
+
+        if (ceScore > 0 && peScore > 0) {
+          if (ceSignal.includes("BULLISH") && peSignal.includes("BEARISH")) {
+            overallSignal =
+              ceScore > peScore
+                ? "BULLISH"
+                : ceScore < peScore
+                  ? "BEARISH"
+                  : "MIXED";
+          } else if (
+            ceSignal.includes("BEARISH") &&
+            peSignal.includes("BULLISH")
+          ) {
+            overallSignal =
+              ceScore > peScore
+                ? "BEARISH"
+                : ceScore < peScore
+                  ? "BULLISH"
+                  : "MIXED";
+          } else if (
+            ceSignal.includes("BULLISH") &&
+            peSignal.includes("BULLISH")
+          ) {
+            overallSignal = "BULLISH";
+          } else if (
+            ceSignal.includes("BEARISH") &&
+            peSignal.includes("BEARISH")
+          ) {
+            overallSignal = "BEARISH";
+          }
+        } else if (ceSignal.includes("BULLISH")) {
+          overallSignal = "BULLISH";
+        } else if (ceSignal.includes("BEARISH")) {
+          overallSignal = "BEARISH";
+        } else if (peSignal.includes("BULLISH")) {
+          overallSignal = "BULLISH";
+        } else if (peSignal.includes("BEARISH")) {
+          overallSignal = "BEARISH";
+        }
+
+        marketSignalElement.textContent = overallSignal;
+
+        if (overallSignal === "BULLISH") {
+          marketSignalCard.classList.add("signal-bullish");
+        } else if (overallSignal === "BEARISH") {
+          marketSignalCard.classList.add("signal-bearish");
+        } else if (overallSignal === "MIXED") {
+          marketSignalCard.classList.add("signal-mixed");
+        } else {
+          marketSignalCard.classList.add("signal-neutral");
+        }
+      }
+
+      function filterTime() {
+        const selected = document.getElementById("timeFilter").value;
+
+        const oiHeaders = document.querySelectorAll(".time-column");
+
+        const oiCells = document.querySelectorAll(".time-cell");
+
+        const volumeHeaders = document.querySelectorAll(".volume-time-column");
+
+        const volumeCells = document.querySelectorAll(".volume-time-cell");
+
+        let totalColumns = 0;
+
+        oiHeaders.forEach(function (element) {
+          const column = parseInt(element.getAttribute("data-column"), 10);
+
+          if (column >= totalColumns) {
+            totalColumns = column + 1;
+          }
+        });
+
+        let numberToShow;
+
+        if (selected === "all") {
+          numberToShow = totalColumns;
+        } else {
+          numberToShow = parseInt(selected, 10);
+        }
+
+        if (numberToShow > totalColumns) {
+          numberToShow = totalColumns;
+        }
+
+        const firstColumn = totalColumns - numberToShow;
+
+        oiHeaders.forEach(function (element) {
+          const column = parseInt(element.getAttribute("data-column"), 10);
+
+          element.style.display = column >= firstColumn ? "" : "none";
+        });
+
+        oiCells.forEach(function (element) {
+          const column = parseInt(element.getAttribute("data-column"), 10);
+
+          element.style.display = column >= firstColumn ? "" : "none";
+        });
+
+        volumeHeaders.forEach(function (element) {
+          const column = parseInt(element.getAttribute("data-column"), 10);
+
+          element.style.display = column >= firstColumn ? "" : "none";
+        });
+
+        volumeCells.forEach(function (element) {
+          const column = parseInt(element.getAttribute("data-column"), 10);
+
+          element.style.display = column >= firstColumn ? "" : "none";
+        });
+
+        updateMarketSignal();
+      }
+
+      function getChartData(tableId, selectedValue) {
+        const table = document.getElementById(tableId);
+
+        if (!table) {
+          return {
+            labels: [],
+            ce: [],
+            pe: [],
+          };
+        }
+
+        const headers = table.querySelectorAll(
+          "thead tr:first-child th[data-column]",
+        );
+
+        let totalColumns = 0;
+
+        headers.forEach(function (header) {
+          const column = parseInt(header.getAttribute("data-column"), 10);
+
+          if (column >= totalColumns) {
+            totalColumns = column + 1;
+          }
+        });
+
+        let numberToShow;
+
+        if (selectedValue === "all") {
+          numberToShow = totalColumns;
+        } else {
+          numberToShow = parseInt(selectedValue, 10);
+        }
+
+        if (numberToShow > totalColumns) {
+          numberToShow = totalColumns;
+        }
+
+        const firstColumn = totalColumns - numberToShow;
+
+        const labels = [];
+        const ce = [];
+        const pe = [];
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        Array.from(headers).forEach(function (header) {
+          const column = parseInt(header.getAttribute("data-column"), 10);
+
+          if (column < firstColumn) {
+            return;
+          }
+
+          labels.push(header.textContent.trim());
+
+          let ceTotal = 0;
+          let peTotal = 0;
+
+          rows.forEach(function (row) {
+            const cells = row.querySelectorAll("td");
+
+            const ceCell = cells[1 + column * 2];
+
+            const peCell = cells[2 + column * 2];
+
+            if (ceCell) {
+              ceTotal += getNumber(ceCell.textContent);
+            }
+
+            if (peCell) {
+              peTotal += getNumber(peCell.textContent);
+            }
+          });
+
+          ce.push(ceTotal);
+          pe.push(peTotal);
+        });
+
+        return {
+          labels: labels,
+          ce: ce,
+          pe: pe,
+        };
+      }
+
+      function updateOIChart() {
+        const selected = document.getElementById("oiChartFilter").value;
+
+        const data = getChartData("oiChangeTable", selected);
+
+        const canvas = document.getElementById("oiBarChart");
+
+        if (!canvas) {
+          return;
+        }
+
+        if (oiChart) {
+          oiChart.destroy();
+        }
+
+        oiChart = new Chart(canvas, {
+          type: "bar",
+
+          data: {
+            labels: data.labels,
+
+            datasets: [
+              {
+                label: "CE OI Change",
+                data: data.ce,
+                backgroundColor: "rgba(34, 197, 94, 0.75)",
+                borderColor: "rgba(22, 163, 74, 1)",
+                borderWidth: 1,
+              },
+
+              {
+                label: "PE OI Change",
+                data: data.pe,
+                backgroundColor: "rgba(239, 68, 68, 0.75)",
+                borderColor: "rgba(185, 28, 28, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      }
+
+      function updateVolumeChart() {
+        const selected = document.getElementById("volumeChartFilter").value;
+
+        const data = getChartData("volumeChangeTable", selected);
+
+        const canvas = document.getElementById("volumeBarChart");
+
+        if (!canvas) {
+          return;
+        }
+
+        if (volumeChart) {
+          volumeChart.destroy();
+        }
+
+        volumeChart = new Chart(canvas, {
+          type: "bar",
+
+          data: {
+            labels: data.labels,
+
+            datasets: [
+              {
+                label: "CE Volume Change",
+                data: data.ce,
+                backgroundColor: "rgba(34, 197, 94, 0.75)",
+                borderColor: "rgba(22, 163, 74, 1)",
+                borderWidth: 1,
+              },
+
+              {
+                label: "PE Volume Change",
+                data: data.pe,
+                backgroundColor: "rgba(239, 68, 68, 0.75)",
+                borderColor: "rgba(185, 28, 28, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      }
+
+      function updateCharts() {
+        updateOIChart();
+        updateVolumeChart();
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        filterTime();
+
+        updateLatestSummary();
+
+        applyVolumeIntensityColors();
+
+        calculateTableTotals("oiChangeTable", "oi");
+
+        calculateTableTotals("volumeChangeTable", "volume");
+
+        updateCharts();
+
+        updateMarketSignal();
+      });
+    </script>
+  </body>
+</html>
