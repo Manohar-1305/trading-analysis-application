@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title id="pageTitle">Short Selling Paper Trading</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='paper_trading.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="container">
+      <header class="paper-header">
+        <div class="paper-header-left">
+          <h1 id="pageHeading">Short Selling Paper Trading</h1>
+
+          <div id="marketInfo" class="market-info">Loading...</div>
+        </div>
+
+        <div class="paper-header-actions">
+          <div class="index-filter">
+            <label for="indexFilter"> INDEX </label>
+
+            <div class="index-select-wrapper">
+              <select id="indexFilter" onchange="changeIndex()">
+                <option value="NIFTY">NIFTY</option>
+
+                <option value="BANKNIFTY">BANKNIFTY</option>
+
+                <option value="GOLD">GOLD</option>
+
+                <option value="SILVER">SILVER</option>
+
+                <option value="CRUDEOIL">CRUDEOIL</option>
+              </select>
+
+              <span class="index-select-arrow"> ▼ </span>
+            </div>
+          </div>
+
+          <a href="/" class="paper-button home-button"> Option Chain </a>
+
+          <a href="/paper-trading" class="paper-button home-button"> Buying </a>
+
+          <a href="/oi-treemap" class="paper-button home-button">
+            OI Treemap
+          </a>
+
+          <a href="/oi-change" class="paper-button home-button"> OI Change </a>
+
+          <button
+            type="button"
+            class="paper-button refresh-button"
+            onclick="manualRefresh()"
+          >
+            Refresh
+          </button>
+
+          <button
+            type="button"
+            class="paper-button reset-button"
+            onclick="resetPaperAccount()"
+          >
+            Reset Short Account
+          </button>
+        </div>
+      </header>
+
+      <section class="paper-info">
+        <div class="paper-card">
+          <strong> PAPER BALANCE </strong>
+
+          <span id="balance"> -- </span>
+        </div>
+
+        <div class="paper-card">
+          <strong> REALIZED P&amp;L </strong>
+
+          <span id="realizedPnl"> -- </span>
+        </div>
+
+        <div class="paper-card">
+          <strong> UNREALIZED P&amp;L </strong>
+
+          <span id="unrealizedPnl"> -- </span>
+        </div>
+
+        <div class="paper-card">
+          <strong> TOTAL P&amp;L </strong>
+
+          <span id="totalPnl"> -- </span>
+        </div>
+      </section>
+
+      <section class="paper-market-controls">
+        <div class="expiry-control">
+          <label for="expiry"> Expiry: </label>
+
+          <select id="expiry" onchange="changeExpiry()"></select>
+        </div>
+
+        <div id="statusMessage" class="status-message">
+          Loading current option-chain data...
+        </div>
+      </section>
+
+      <h2 class="market-title">Short Selling Option Chain</h2>
+
+      <div class="market-wrapper">
+        <table class="paper-table market-table">
+          <thead>
+            <tr>
+              <th colspan="5" class="ce-header">CALL OPTION (CE)</th>
+
+              <th rowspan="2" class="strike-header">STRIKE</th>
+
+              <th colspan="5" class="pe-header">PUT OPTION (PE)</th>
+            </tr>
+
+            <tr>
+              <th>LTP</th>
+
+              <th>CHANGE</th>
+
+              <th>OI</th>
+
+              <th>VOLUME</th>
+
+              <th>ACTION</th>
+
+              <th>LTP</th>
+
+              <th>CHANGE</th>
+
+              <th>OI</th>
+
+              <th>VOLUME</th>
+
+              <th>ACTION</th>
+            </tr>
+          </thead>
+
+          <tbody id="marketBody"></tbody>
+        </table>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 20px;
+        "
+      >
+        <h2 class="positions-title" style="margin: 0">Open Short Positions</h2>
+
+        <button
+          type="button"
+          class="paper-button refresh-button"
+          onclick="downloadPositions()"
+        >
+          Download Positions
+        </button>
+      </div>
+
+      <div class="positions-wrapper">
+        <table class="paper-table positions-table">
+          <thead>
+            <tr>
+              <th>INDEX</th>
+
+              <th>EXPIRY</th>
+
+              <th>STRIKE</th>
+
+              <th>TYPE</th>
+
+              <th>LOTS</th>
+
+              <th>LOT SIZE</th>
+
+              <th>TOTAL QTY</th>
+
+              <th>AVG SELL</th>
+
+              <th>CURRENT LTP</th>
+
+              <th>VALUE</th>
+
+              <th>UNREALIZED P&amp;L</th>
+
+              <th>P&amp;L %</th>
+
+              <th>ACTION</th>
+            </tr>
+          </thead>
+
+          <tbody id="positionsBody"></tbody>
+        </table>
+      </div>
+
+      <h2 class="trades-title">Short Trade History</h2>
+
+      <div class="trades-wrapper">
+        <table class="paper-table trades-table">
+          <thead>
+            <tr>
+              <th>TIME</th>
+
+              <th>ACTION</th>
+
+              <th>INDEX</th>
+
+              <th>EXPIRY</th>
+
+              <th>STRIKE</th>
+
+              <th>TYPE</th>
+
+              <th>LOTS</th>
+
+              <th>LOT SIZE</th>
+
+              <th>TOTAL QTY</th>
+
+              <th>SELL PRICE</th>
+
+              <th>BUY PRICE</th>
+
+              <th>VALUE</th>
+
+              <th>P&amp;L</th>
+            </tr>
+          </thead>
+
+          <tbody id="tradesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      let marketData = null;
+
+      let currentIndex = "NIFTY";
+
+      let currentExpiry = null;
+
+      const AVAILABLE_INDEXES = [
+        "NIFTY",
+        "BANKNIFTY",
+        "GOLD",
+        "SILVER",
+        "CRUDEOIL",
+      ];
+
+      const LOT_SIZES = {
+        NIFTY: 65,
+        BANKNIFTY: 30,
+        GOLD: 100,
+        SILVER: 30,
+        CRUDEOIL: 100,
+      };
+
+      function number(value) {
+        const parsed = Number(
+          String(value ?? "")
+            .replace(/,/g, "")
+            .trim(),
+        );
+
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function getLotSize(index) {
+        return LOT_SIZES[String(index || currentIndex).toUpperCase()] || 1;
+      }
+
+      function formatNumber(value, decimals = 2) {
+        return number(value).toLocaleString("en-IN", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        });
+      }
+
+      function formatInteger(value) {
+        return number(value).toLocaleString("en-IN", {
+          maximumFractionDigits: 0,
+        });
+      }
+
+      function formatPnl(value) {
+        const amount = number(value);
+
+        if (amount > 0) {
+          return (
+            '<span class="positive-pnl">' +
+            "+" +
+            formatNumber(amount) +
+            "</span>"
+          );
+        }
+
+        if (amount < 0) {
+          return (
+            '<span class="negative-pnl">' + formatNumber(amount) + "</span>"
+          );
+        }
+
+        return '<span class="neutral-pnl">' + "0.00" + "</span>";
+      }
+
+      function setStatus(message) {
+        document.getElementById("statusMessage").textContent = message;
+      }
+
+      function populateIndexes(selectedIndex) {
+        const select = document.getElementById("indexFilter");
+
+        select.innerHTML = "";
+
+        AVAILABLE_INDEXES.forEach(function (index) {
+          const option = document.createElement("option");
+
+          option.value = index;
+
+          option.textContent = index;
+
+          if (index === selectedIndex) {
+            option.selected = true;
+          }
+
+          select.appendChild(option);
+        });
+      }
+
+      function populateExpiries(expiries, selectedExpiry) {
+        const select = document.getElementById("expiry");
+
+        select.innerHTML = "";
+
+        if (!expiries || expiries.length === 0) {
+          const option = document.createElement("option");
+
+          option.value = "";
+
+          option.textContent = "No expiry available";
+
+          select.appendChild(option);
+
+          return;
+        }
+
+        expiries.forEach(function (expiry) {
+          const option = document.createElement("option");
+
+          option.value = expiry;
+
+          option.textContent = expiry;
+
+          if (expiry === selectedExpiry) {
+            option.selected = true;
+          }
+
+          select.appendChild(option);
+        });
+
+        if (selectedExpiry && expiries.includes(selectedExpiry)) {
+          select.value = selectedExpiry;
+        } else {
+          select.value = expiries[0];
+
+          currentExpiry = expiries[0];
+
+          localStorage.setItem("selectedExpiry", currentExpiry);
+        }
+      }
+
+      function updatePageTitle(index) {
+        document.title = index + " Short Selling Paper Trading";
+
+        document.getElementById("pageHeading").textContent =
+          index + " Short Selling Paper Trading";
+      }
+
+      async function loadExpiries(index, selectedExpiry) {
+        try {
+          const response = await fetch(
+            "/api/expiries?index=" +
+              encodeURIComponent(index) +
+              "&_=" +
+              Date.now(),
+            {
+              cache: "no-store",
+            },
+          );
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            populateExpiries([], null);
+
+            return null;
+          }
+
+          const expiries = Array.isArray(data.expiries) ? data.expiries : [];
+
+          let expiry = selectedExpiry || data.selected_expiry;
+
+          if (!expiry || !expiries.includes(expiry)) {
+            expiry = expiries.length > 0 ? expiries[0] : null;
+          }
+
+          currentExpiry = expiry;
+
+          populateExpiries(expiries, expiry);
+
+          if (expiry) {
+            localStorage.setItem("selectedExpiry", expiry);
+          } else {
+            localStorage.removeItem("selectedExpiry");
+          }
+
+          return {
+            expiries: expiries,
+            expiry: expiry,
+          };
+        } catch (error) {
+          console.error(error);
+
+          populateExpiries([], null);
+
+          return null;
+        }
+      }
+
+      async function changeIndex() {
+        const select = document.getElementById("indexFilter");
+
+        const index = select.value;
+
+        if (!index) {
+          return;
+        }
+
+        if (!AVAILABLE_INDEXES.includes(index)) {
+          return;
+        }
+
+        try {
+          setStatus("Changing index...");
+
+          const response = await fetch(
+            "/set-index?index=" +
+              encodeURIComponent(index) +
+              "&_=" +
+              Date.now(),
+            {
+              cache: "no-store",
+            },
+          );
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            setStatus(data.message || "Unable to change index");
+
+            return;
+          }
+
+          currentIndex = data.index || index;
+
+          currentExpiry = data.expiry || null;
+
+          localStorage.setItem("selectedIndex", currentIndex);
+
+          updatePageTitle(currentIndex);
+
+          populateIndexes(currentIndex);
+
+          const expiryData = await loadExpiries(currentIndex, currentExpiry);
+
+          if (expiryData && expiryData.expiry) {
+            currentExpiry = expiryData.expiry;
+          }
+
+          await loadMarket();
+        } catch (error) {
+          console.error(error);
+
+          setStatus("Unable to change index");
+        }
+      }
+
+      async function changeExpiry() {
+        const expiry = document.getElementById("expiry").value;
+
+        if (!expiry) {
+          return;
+        }
+
+        try {
+          setStatus("Changing expiry...");
+
+          const response = await fetch(
+            "/set-expiry?expiry=" +
+              encodeURIComponent(expiry) +
+              "&_=" +
+              Date.now(),
+            {
+              cache: "no-store",
+            },
+          );
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            setStatus(data.message || "Unable to change expiry");
+
+            return;
+          }
+
+          currentIndex = data.index || currentIndex;
+
+          currentExpiry = data.expiry || expiry;
+
+          localStorage.setItem("selectedIndex", currentIndex);
+
+          localStorage.setItem("selectedExpiry", currentExpiry);
+
+          updatePageTitle(currentIndex);
+
+          populateIndexes(currentIndex);
+
+          await loadExpiries(currentIndex, currentExpiry);
+
+          await loadMarket();
+        } catch (error) {
+          console.error(error);
+
+          setStatus("Unable to change expiry");
+        }
+      }
+
+      async function loadMarket() {
+        try {
+          const response = await fetch(
+            "/api/paper-trading/market?_=" + Date.now(),
+            {
+              cache: "no-store",
+            },
+          );
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            setStatus(data.message || "Unable to load market data");
+
+            return;
+          }
+
+          marketData = data;
+
+          currentIndex = data.index || currentIndex;
+
+          currentExpiry = data.expiry || currentExpiry;
+
+          localStorage.setItem("selectedIndex", currentIndex);
+
+          updatePageTitle(currentIndex);
+
+          populateIndexes(currentIndex);
+
+          if (Array.isArray(data.expiries) && data.expiries.length > 0) {
+            populateExpiries(data.expiries, currentExpiry);
+          } else {
+            await loadExpiries(currentIndex, currentExpiry);
+          }
+
+          const lotSize = Number(data.lot_size || getLotSize(currentIndex));
+
+          document.getElementById("marketInfo").textContent =
+            data.index +
+            " | Expiry: " +
+            data.expiry +
+            " | Spot: " +
+            formatNumber(data.spot) +
+            " | ATM: " +
+            formatNumber(data.atm, 0) +
+            " | Lot Size: " +
+            formatInteger(lotSize) +
+            " | " +
+            data.timestamp;
+
+          renderMarket(data.rows, lotSize);
+
+          setStatus("Paper short selling only. No real order is placed.");
+
+          await loadAccount();
+        } catch (error) {
+          console.error(error);
+
+          setStatus("Unable to load market data");
+        }
+      }
+
+      function createQuantityInput() {
+        const input = document.createElement("input");
+
+        input.type = "number";
+
+        input.min = "1";
+
+        input.step = "1";
+
+        input.value = "1";
+
+        input.className = "quantity-input";
+
+        return input;
+      }
+
+      function renderMarket(rows, lotSize) {
+        const body = document.getElementById("marketBody");
+
+        body.innerHTML = "";
+
+        if (!rows || rows.length === 0) {
+          body.innerHTML =
+            "<tr>" +
+            '<td colspan="11">' +
+            "No option-chain data available" +
+            "</td>" +
+            "</tr>";
+
+          return;
+        }
+
+        rows.forEach(function (row) {
+          const tr = document.createElement("tr");
+
+          tr.innerHTML =
+            '<td class="ce-cell">' +
+            formatNumber(row.ce_ltp) +
+            "</td>" +
+            '<td class="ce-cell">' +
+            formatNumber(row.ce_change) +
+            "</td>" +
+            '<td class="ce-cell">' +
+            formatNumber(row.ce_oi, 0) +
+            "</td>" +
+            '<td class="ce-cell">' +
+            formatNumber(row.ce_volume, 0) +
+            "</td>";
+
+          const ceAction = document.createElement("td");
+
+          ceAction.className = "ce-cell action-cell";
+
+          const ceActionRow = document.createElement("div");
+
+          ceActionRow.className = "action-row";
+
+          const ceQuantity = createQuantityInput();
+
+          ceQuantity.title = "Lots. 1 lot = " + lotSize + " units";
+
+          const ceSell = document.createElement("button");
+
+          ceSell.type = "button";
+
+          ceSell.className = "paper-button sell-button";
+
+          ceSell.textContent = "SELL";
+
+          ceSell.title = "SHORT SELL CE";
+
+          ceSell.onclick = function () {
+            placeOrder("SELL", "CE", row.strike, ceQuantity.value);
+          };
+
+          ceActionRow.appendChild(ceQuantity);
+
+          ceActionRow.appendChild(ceSell);
+
+          ceAction.appendChild(ceActionRow);
+
+          tr.appendChild(ceAction);
+
+          const strikeCell = document.createElement("td");
+
+          strikeCell.className = "strike-cell";
+
+          strikeCell.textContent = formatNumber(row.strike, 0);
+
+          tr.appendChild(strikeCell);
+
+          const peValues = [
+            row.pe_ltp,
+            row.pe_change,
+            row.pe_oi,
+            row.pe_volume,
+          ];
+
+          peValues.forEach(function (value, index) {
+            const td = document.createElement("td");
+
+            td.className = "pe-cell";
+
+            td.textContent = formatNumber(value, index >= 2 ? 0 : 2);
+
+            tr.appendChild(td);
+          });
+
+          const peAction = document.createElement("td");
+
+          peAction.className = "pe-cell action-cell";
+
+          const peActionRow = document.createElement("div");
+
+          peActionRow.className = "action-row";
+
+          const peQuantity = createQuantityInput();
+
+          peQuantity.title = "Lots. 1 lot = " + lotSize + " units";
+
+          const peSell = document.createElement("button");
+
+          peSell.type = "button";
+
+          peSell.className = "paper-button sell-button";
+
+          peSell.textContent = "SELL";
+
+          peSell.title = "SHORT SELL PE";
+
+          peSell.onclick = function () {
+            placeOrder("SELL", "PE", row.strike, peQuantity.value);
+          };
+
+          peActionRow.appendChild(peQuantity);
+
+          peActionRow.appendChild(peSell);
+
+          peAction.appendChild(peActionRow);
+
+          tr.appendChild(peAction);
+
+          body.appendChild(tr);
+        });
+      }
+
+      async function placeOrder(action, optionType, strike, lots) {
+        const parsedLots = parseInt(lots, 10);
+
+        if (!Number.isInteger(parsedLots) || parsedLots <= 0) {
+          setStatus("Lots must be greater than zero");
+
+          return;
+        }
+
+        const lotSize = getLotSize(currentIndex);
+
+        const totalQuantity = parsedLots * lotSize;
+
+        try {
+          const response = await fetch("/api/paper-trading-selling/order", {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify({
+              action: action,
+
+              option_type: optionType,
+
+              index: currentIndex,
+
+              expiry: currentExpiry,
+
+              strike: Number(strike),
+
+              quantity: totalQuantity,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            setStatus(data.message || "Paper order failed");
+
+            return;
+          }
+
+          setStatus(
+            data.message +
+              " | " +
+              parsedLots +
+              " lot(s) = " +
+              formatInteger(totalQuantity) +
+              " units",
+          );
+
+          await loadAccount();
+        } catch (error) {
+          console.error(error);
+
+          setStatus("Paper order failed");
+        }
+      }
+
+      async function coverPosition(position, lots) {
+        const parsedLots = parseInt(lots, 10);
+
+        if (!Number.isInteger(parsedLots) || parsedLots <= 0) {
+          setStatus("Invalid lot quantity");
+
+          return;
+        }
+
+        const lotSize = Number(position.lot_size || getLotSize(position.index));
+
+        const totalQuantity = parsedLots * lotSize;
+
+        if (totalQuantity > number(position.quantity)) {
+          setStatus("Cannot buy more than the open short quantity");
+
+          return;
+        }
+
+        if (
+          !confirm(
+            "BUY TO COVER " +
+              parsedLots +
+              " lot(s) of " +
+              position.option_type +
+              " @ " +
+              formatNumber(position.strike, 0) +
+              "?\n\n" +
+              "Total quantity: " +
+              formatInteger(totalQuantity),
+          )
+        ) {
+          return;
+        }
+
+        await placeOrder(
+          "BUY",
+          position.option_type,
+          position.strike,
+          parsedLots,
+        );
+      }
+
+      async function loadAccount() {
+        try {
+          const response = await fetch(
+            "/api/paper-trading-selling/account?_=" + Date.now(),
+            {
+              cache: "no-store",
+            },
+          );
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            return;
+          }
+
+          const account = data.account;
+
+          document.getElementById("balance").textContent = formatNumber(
+            account.balance,
+          );
+
+          document.getElementById("realizedPnl").innerHTML = formatPnl(
+            account.realized_pnl,
+          );
+
+          document.getElementById("unrealizedPnl").innerHTML = formatPnl(
+            account.unrealized_pnl,
+          );
+
+          document.getElementById("totalPnl").innerHTML = formatPnl(
+            account.total_pnl,
+          );
+
+          renderPositions(account.positions);
+
+          renderTrades(account.trades);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function renderPositions(positions) {
+        const body = document.getElementById("positionsBody");
+
+        body.innerHTML = "";
+
+        if (!positions || positions.length === 0) {
+          body.innerHTML =
+            "<tr>" +
+            '<td colspan="13">' +
+            "No open short positions" +
+            "</td>" +
+            "</tr>";
+
+          return;
+        }
+
+        positions.forEach(function (position) {
+          const tr = document.createElement("tr");
+
+          const quantity = number(position.quantity);
+
+          const lotSize = number(
+            position.lot_size || getLotSize(position.index),
+          );
+
+          const lots = lotSize ? quantity / lotSize : quantity;
+
+          const avgSell = number(position.avg_price);
+
+          const currentLtp = number(position.current_price);
+
+          const marketValue = currentLtp * quantity;
+
+          const unrealizedPnl = (avgSell - currentLtp) * quantity;
+
+          const invested = avgSell * quantity;
+
+          const pnlPercent = invested ? (unrealizedPnl / invested) * 100 : 0;
+
+          tr.innerHTML =
+            "<td>" +
+            position.index +
+            "</td>" +
+            "<td>" +
+            position.expiry +
+            "</td>" +
+            "<td>" +
+            formatNumber(position.strike, 0) +
+            "</td>" +
+            "<td>" +
+            position.option_type +
+            "</td>" +
+            "<td>" +
+            formatInteger(lots) +
+            "</td>" +
+            "<td>" +
+            formatInteger(lotSize) +
+            "</td>" +
+            "<td>" +
+            formatInteger(quantity) +
+            "</td>" +
+            "<td>" +
+            formatNumber(avgSell) +
+            "</td>" +
+            "<td>" +
+            formatNumber(currentLtp) +
+            "</td>" +
+            "<td>" +
+            formatNumber(marketValue) +
+            "</td>" +
+            "<td>" +
+            formatPnl(unrealizedPnl) +
+            "</td>" +
+            "<td>" +
+            formatNumber(pnlPercent) +
+            "%</td>";
+
+          const actionCell = document.createElement("td");
+
+          actionCell.className = "position-action-cell";
+
+          const buyButton = document.createElement("button");
+
+          buyButton.type = "button";
+
+          buyButton.className = "paper-button buy-button";
+
+          buyButton.textContent = "BUY " + position.option_type;
+
+          buyButton.onclick = function () {
+            coverPosition(position, lots);
+          };
+
+          actionCell.appendChild(buyButton);
+
+          tr.appendChild(actionCell);
+
+          body.appendChild(tr);
+        });
+      }
+
+      function renderTrades(trades) {
+        const body = document.getElementById("tradesBody");
+
+        body.innerHTML = "";
+
+        if (!trades || trades.length === 0) {
+          body.innerHTML =
+            "<tr>" +
+            '<td colspan="13">' +
+            "No short trades yet" +
+            "</td>" +
+            "</tr>";
+
+          return;
+        }
+
+        trades.forEach(function (trade) {
+          const tr = document.createElement("tr");
+
+          const lotSize = number(trade.lot_size || getLotSize(trade.index));
+
+          const quantity = number(trade.quantity);
+
+          const lots = lotSize ? quantity / lotSize : quantity;
+
+          const price = number(trade.price);
+
+          const value = price * quantity;
+
+          const action = String(trade.action || "").toUpperCase();
+
+          const sellPrice =
+            action === "SELL"
+              ? formatNumber(price)
+              : trade.sell_price !== undefined
+                ? formatNumber(trade.sell_price)
+                : "";
+
+          const buyPrice = action === "BUY" ? formatNumber(price) : "";
+
+          tr.innerHTML =
+            "<td>" +
+            trade.timestamp +
+            "</td>" +
+            "<td>" +
+            trade.action +
+            "</td>" +
+            "<td>" +
+            trade.index +
+            "</td>" +
+            "<td>" +
+            trade.expiry +
+            "</td>" +
+            "<td>" +
+            formatNumber(trade.strike, 0) +
+            "</td>" +
+            "<td>" +
+            trade.option_type +
+            "</td>" +
+            "<td>" +
+            formatInteger(lots) +
+            "</td>" +
+            "<td>" +
+            formatInteger(lotSize) +
+            "</td>" +
+            "<td>" +
+            formatInteger(quantity) +
+            "</td>" +
+            "<td>" +
+            sellPrice +
+            "</td>" +
+            "<td>" +
+            buyPrice +
+            "</td>" +
+            "<td>" +
+            formatNumber(value) +
+            "</td>" +
+            "<td>" +
+            formatPnl(trade.pnl) +
+            "</td>";
+
+          body.appendChild(tr);
+        });
+      }
+
+      function downloadPositions() {
+        const table = document.querySelector(".positions-table");
+
+        if (!table) {
+          return;
+        }
+
+        const rows = table.querySelectorAll("tr");
+
+        if (!rows || rows.length === 0) {
+          setStatus("No positions available to download");
+
+          return;
+        }
+
+        const csvRows = [];
+
+        rows.forEach(function (row) {
+          const cells = row.querySelectorAll("th, td");
+
+          const rowData = [];
+
+          cells.forEach(function (cell, index) {
+            if (row.querySelector("th") && index === cells.length - 1) {
+              return;
+            }
+
+            if (
+              cell.classList.contains("position-action-cell") ||
+              cell.querySelector("button")
+            ) {
+              return;
+            }
+
+            let value = cell.textContent.replace(/\s+/g, " ").trim();
+
+            value = value.replace(/"/g, '""');
+
+            rowData.push('"' + value + '"');
+          });
+
+          if (rowData.length > 0) {
+            csvRows.push(rowData.join(","));
+          }
+        });
+
+        if (csvRows.length <= 1) {
+          setStatus("No open positions to download");
+
+          return;
+        }
+
+        const csvContent = "\uFEFF" + csvRows.join("\r\n");
+
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+
+        link.href = url;
+
+        link.download =
+          String(currentIndex || "INDEX") +
+          "_Short_Positions_" +
+          String(currentExpiry || "Expiry") +
+          ".csv";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+
+        setStatus("Positions downloaded");
+      }
+
+      async function resetPaperAccount() {
+        if (
+          !confirm(
+            "Reset the short selling paper account and delete all short trades?",
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const response = await fetch("/api/paper-trading-selling/reset", {
+            method: "POST",
+          });
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            setStatus(data.message || "Reset failed");
+
+            return;
+          }
+
+          setStatus("Short selling paper account reset");
+
+          await loadAccount();
+        } catch (error) {
+          console.error(error);
+
+          setStatus("Reset failed");
+        }
+      }
+
+      function manualRefresh() {
+        setStatus("Refreshing market data...");
+
+        loadMarket();
+      }
+
+      async function initializePage() {
+        try {
+          const response = await fetch("/status?_=" + Date.now(), {
+            cache: "no-store",
+          });
+
+          const data = await response.json();
+
+          if (data.index) {
+            currentIndex = data.index;
+          }
+
+          if (data.expiry) {
+            currentExpiry = data.expiry;
+          }
+
+          populateIndexes(currentIndex);
+
+          updatePageTitle(currentIndex);
+
+          localStorage.setItem("selectedIndex", currentIndex);
+
+          await loadExpiries(currentIndex, currentExpiry);
+
+          await loadMarket();
+        } catch (error) {
+          console.error(error);
+
+          setStatus("Unable to initialize short selling paper trading");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        initializePage();
+
+        setInterval(function () {
+          loadMarket();
+        }, 180000);
+      });
+    </script>
+  </body>
+</html>
